@@ -11,6 +11,17 @@ if (!isset($_SESSION['user_token']) || !isset($_SESSION['user_email'])) {
     exit();
 }
 
+function ajouter_log($user, $action) {
+    $logsFilePath = '../logs/logs.json';
+    $logEntry = [
+        'user' => $user,
+        'timestamp' => date('Y-m-d H:i:s'),
+        'action' => $action
+    ];
+    $logJson = json_encode($logEntry) . "\n";
+    file_put_contents($logsFilePath, $logJson, FILE_APPEND);
+}
+
 function getCurrentVersion() {
     return trim(file_get_contents('version.txt'));
 }
@@ -84,6 +95,7 @@ function updateFiles() {
         return false;
     }
 }
+
 function updateDatabase($pdo) {
     $sqlFilePath = '../utils/panel.sql';
     if (!file_exists($sqlFilePath)) {
@@ -148,6 +160,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['update_button'])) {
             $dbUpdateResult = updateDatabase($pdo);
             if ($dbUpdateResult['success']) {
                 file_put_contents('version.txt', $latestVersion);
+                ajouter_log($_SESSION['user_email'], "Mise à jour effectuée de la version $currentVersion à $latestVersion");
                 echo json_encode(['success' => true, 'message' => "Mise à jour terminée avec succès à la version $latestVersion."]);
             } else {
                 echo json_encode($dbUpdateResult);

@@ -1,8 +1,12 @@
 <?php
 session_start();
 $configFilePath = '../../conn.php';
+if (!file_exists($configFilePath)) {
+    header('Location: ../../setdb');
+    exit();
+}
+require_once '../../connexion_bdd.php';
 
-// Fonction de journalisation
 function ajouter_log($user, $action) {
     $logsFilePath = '../../logs/logs.json';
     $logEntry = [
@@ -21,12 +25,6 @@ if (isset($_POST['logout'])) {
     header('Location: ../connexion');
     exit();
 }
-
-if (!file_exists($configFilePath)) {
-    header('Location: ../../setdb');
-    exit();
-}
-require_once '../../connexion_bdd.php';
 
 if (isset($_SESSION['user_token'])) {
     $stmt = $pdo->prepare("SELECT * FROM users WHERE token = :token");
@@ -73,7 +71,7 @@ if (isset($_POST['submit'])) {
     }
 
     if (count($errors) === 0) {
-        $hashed_password = password_hash($_POST['password'], PASSWORD_DEFAULT);
+        $hashed_password = password_hash($password, PASSWORD_DEFAULT);
 
         $query = "INSERT INTO users (email, password) VALUES (:email, :password)";
         $stmt = $pdo->prepare($query);
@@ -88,12 +86,11 @@ if (isset($_POST['submit'])) {
     }
 }
 
-// Gestion de la suppression d'utilisateur
 if (isset($_POST['delete_user'])) {
     $user_id = $_POST['user_id'];
     $user_email = $_POST['user_email'];
     
-    if ($user_id != 1) {  // Empêcher la suppression de l'utilisateur avec l'ID 1
+    if ($user_id != 1) {
         $query = "DELETE FROM users WHERE id = :id";
         $stmt = $pdo->prepare($query);
         $stmt->execute(array('id' => $user_id));
@@ -105,11 +102,32 @@ if (isset($_POST['delete_user'])) {
     }
 }
 
+if (isset($_POST['change_password'])) {
+    $user_id = $_POST['user_id'];
+    $new_password = $_POST['new_password'];
+    $confirm_new_password = $_POST['confirm_new_password'];
+
+    if ($new_password === $confirm_new_password) {
+        if ($user_id != 1) {
+            $hashed_password = password_hash($new_password, PASSWORD_DEFAULT);
+            $query = "UPDATE users SET password = :password WHERE id = :id";
+            $stmt = $pdo->prepare($query);
+            $stmt->execute(array('password' => $hashed_password, 'id' => $user_id));
+            
+            $message = "Mot de passe changé avec succès.";
+            ajouter_log($_SESSION['user_email'], "Changement de mot de passe pour l'utilisateur ID: $user_id");
+        } else {
+            $message = "Impossible de changer le mot de passe de l'utilisateur principal ici.";
+        }
+    } else {
+        $message = "Les nouveaux mots de passe ne correspondent pas.";
+    }
+}
+
 $stmt = $pdo->prepare("SELECT id, email FROM users");
 $stmt->execute();
 $users = $stmt->fetchAll(PDO::FETCH_ASSOC);
 ?>
-
 <!DOCTYPE html>
 <html lang="fr" data-bs-theme="dark">
 <head>
@@ -119,6 +137,27 @@ $users = $stmt->fetchAll(PDO::FETCH_ASSOC);
     <title>Gestion des utilisateurs</title>
     <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons/font/bootstrap-icons.css" rel="stylesheet">
+    <style>
+        .overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            z-index: 1000;
+        }
+        .overlay-content {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background-color: #1f2937;
+            padding: 2rem;
+            border-radius: 0.5rem;
+        }
+    </style>
 </head>
 
 <?php require_once '../../ui/header2.php'; ?>
@@ -179,23 +218,56 @@ $users = $stmt->fetchAll(PDO::FETCH_ASSOC);
         <h2 class="text-3xl font-bold mb-6 text-center">Liste des utilisateurs</h2>
         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             <?php foreach ($users as $user) : ?>
-                <div class="p-4 bg-gray-900 rounded-lg shadow-md flex justify-between items-center">
-                    <h3 class="text-lg font-medium"><?php echo htmlspecialchars($user['email']); ?></h3>
+                <div class="p-4 bg-gray-900 rounded-lg shadow-md">
+                    <h3 class="text-lg font-medium mb-2"><?php echo htmlspecialchars($user['email']); ?></h3>
                     <?php if ($user['id'] != 1) : ?>
-                        <form method="post" action="" onsubmit="return confirm('Êtes-vous sûr de vouloir supprimer cet utilisateur ?');">
-                            <input type="hidden" name="user_id" value="<?php echo $user['id']; ?>">
-                            <input type="hidden" name="user_email" value="<?php echo $user['email']; ?>">
-                            <button type="submit" name="delete_user" class="bg-red-500 text-white py-1 px-2 rounded-lg hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-opacity-50">
-                                Supprimer
+                        <div class="flex justify-between items-center">
+                            <form method="post" action="" class="inline-block" onsubmit="return confirm('Êtes-vous sûr de vouloir supprimer cet utilisateur ?');">
+                                <input type="hidden" name="user_id" value="<?php echo $user['id']; ?>">
+                                <input type="hidden" name="user_email" value="<?php echo $user['email']; ?>">
+                                <button type="submit" name="delete_user" class="bg-red-500 text-white py-1 px-2 rounded-lg hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-opacity-50">
+                                    Supprimer
+                                </button>
+                            </form>
+                            <button onclick="showChangePasswordOverlay(<?php echo $user['id']; ?>)" class="bg-yellow-500 text-white py-1 px-2 rounded-lg hover:bg-yellow-700 focus:outline-none focus:ring-2 focus:ring-yellow-500 focus:ring-opacity-50">
+                                Changer le mot de passe
                             </button>
-                        </form>
+                        </div>
                     <?php endif; ?>
                 </div>
             <?php endforeach; ?>
         </div>
     </div>
+    
+    <div id="changePasswordOverlay" class="overlay">
+        <div class="overlay-content">
+            <h3 class="text-xl font-bold mb-4">Changer le mot de passe</h3>
+            <form method="post" action="" id="changePasswordForm">
+                <input type="hidden" name="user_id" id="changePasswordUserId">
+                <input type="password" name="new_password" placeholder="Nouveau mot de passe" class="form-input mt-1 block w-full rounded-lg border-gray-600 bg-gray-700 text-gray-200 p-2 focus:ring-indigo-500 focus:border-indigo-500" required>
+                <input type="password" name="confirm_new_password" placeholder="Confirmer le mot de passe" class="form-input mt-1 block w-full rounded-lg border-gray-600 bg-gray-700 text-gray-200 p-2 focus:ring-indigo-500 focus:border-indigo-500 mt-2" required>
+                <div class="flex justify-between mt-4">
+                    <button type="submit" name="change_password" class="bg-green-500 text-white py-1 px-2 rounded-lg hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-opacity-50">
+                        Confirmer
+                    </button>
+                    <button type="button" onclick="hideChangePasswordOverlay()" class="bg-gray-500 text-white py-1 px-2 rounded-lg hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-opacity-50">
+                        Annuler
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
 
     <script>
+        function showChangePasswordOverlay(userId) {
+            document.getElementById('changePasswordUserId').value = userId;
+            document.getElementById('changePasswordOverlay').style.display = 'block';
+        }
+
+        function hideChangePasswordOverlay() {
+            document.getElementById('changePasswordOverlay').style.display = 'none';
+        }
+
         const togglePassword = document.querySelector('#togglePassword');
         const password = document.querySelector('#password');
         const toggleConfirmPassword = document.querySelector('#toggleConfirmPassword');
