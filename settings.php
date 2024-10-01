@@ -30,10 +30,27 @@ if (file_exists($file)) {
 require_once './connexion_bdd.php';
 require('./auth.php');
 if (isset($_POST['logout'])) {
+    // Ajout du log pour la déconnexion
+    if (isset($_SESSION['user_email'])) {
+        ajouter_log($_SESSION['user_email'], "Déconnexion");
+    }
+    
     session_unset();
     session_destroy();
     header('Location: account/connexion');
     exit();
+}
+
+// Fonction de journalisation (assurez-vous qu'elle est définie quelque part dans votre code)
+function ajouter_log($user, $action) {
+    $logsFilePath = 'logs/logs.json';
+    $logEntry = [
+        'user' => $user,
+        'timestamp' => date('Y-m-d H:i:s'),
+        'action' => $action
+    ];
+    $logJson = json_encode($logEntry) . "\n";
+    file_put_contents($logsFilePath, $logJson, FILE_APPEND);
 }
 $sql = "SELECT * FROM options";
 $stmt = $pdo->query($sql);

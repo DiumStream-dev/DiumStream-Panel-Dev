@@ -6,6 +6,19 @@ if (!file_exists($configFilePath)) {
     exit();
 }
 require_once '../connexion_bdd.php';
+
+// Fonction de journalisation
+function ajouter_log($user, $action) {
+    $logsFilePath = '../logs/logs.json';
+    $logEntry = [
+        'user' => $user,
+        'timestamp' => date('Y-m-d H:i:s'),
+        'action' => $action
+    ];
+    $logJson = json_encode($logEntry) . "\n";
+    file_put_contents($logsFilePath, $logJson, FILE_APPEND);
+}
+
 if (isset($_SESSION['user_token'])) {
     $stmt = $pdo->prepare("SELECT * FROM users WHERE token = :token");
     $stmt->bindParam(':token', $_SESSION['user_token']);
@@ -17,6 +30,7 @@ if (isset($_SESSION['user_token'])) {
         exit();
     }
 }
+
 function generateToken($length = 40) {
     $characters = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789-_!?./$';
     $charactersLength = strlen($characters);
@@ -75,6 +89,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     $stmt->bindParam(':token', $token);
                     $stmt->bindParam(':email', $email);
                     $stmt->execute();
+
+                    // Ajout du log pour la connexion réussie
+                    ajouter_log($email, "Connexion réussie");
+
                     header('Location: ../settings');
                     exit();
                 }
