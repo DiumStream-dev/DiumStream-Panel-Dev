@@ -30,7 +30,6 @@ if (file_exists($file)) {
 require_once './connexion_bdd.php';
 require('./auth.php');
 if (isset($_POST['logout'])) {
-    // Ajout du log pour la déconnexion
     if (isset($_SESSION['user_email'])) {
         ajouter_log($_SESSION['user_email'], "Déconnexion");
     }
@@ -41,7 +40,6 @@ if (isset($_POST['logout'])) {
     exit();
 }
 
-// Fonction de journalisation (assurez-vous qu'elle est définie quelque part dans votre code)
 function ajouter_log($user, $action) {
     $logsFilePath = 'logs/logs.json';
     $logEntry = [
