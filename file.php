@@ -15,6 +15,14 @@ if (!file_exists($configFilePath)) {
 }
 require_once 'connexion_bdd.php';
 
+function hasPermission($user, $permission) {
+    if ($user['permissions'] === '*') {
+        return true;
+    }
+    $userPermissions = explode(',', $user['permissions']);
+    return in_array($permission, $userPermissions);
+}
+
 if (isset($_SESSION['user_token'])) {
     $stmt = $pdo->prepare("SELECT * FROM users WHERE token = :token");
     $stmt->bindParam(':token', $_SESSION['user_token']);
@@ -29,8 +37,6 @@ if (isset($_SESSION['user_token'])) {
     header('Location: account/connexion');
     exit();
 }
-
-// Fonction pour ajouter un log
 function addLog($action) {
     $logEntry = [
         'user' => $_SESSION['user_token'],
@@ -101,7 +107,6 @@ if (isset($_POST['delete_selected']) && !empty($_POST['selected_files'])) {
         }
     }
 }
-
 if (isset($_GET['download'])) {
     $filePath = $baseDir . '/' . $_GET['download'];
     if (is_file($filePath)) {
@@ -158,87 +163,98 @@ if (isset($_POST['create_zip']) && !empty($_POST['selected_files'])) {
         exit;
     }
 }
-
 require_once 'ui/header.php';
 ?>
-
 <div class="container mx-auto mt-10 p-6 bg-gray-900 text-white border border-gray-700 rounded-lg shadow-lg">
     <div class="grid grid-cols-1 gap-6">
         <h2 class="text-3xl font-bold mb-6 text-gray-100 border-b border-gray-600 pb-2">Explorateur de Fichiers</h2>
         
-        <div class="flex mb-4">
-            <form action="" method="post" class="mr-4">
-                <input type="text" name="new_folder" placeholder="Nom du dossier" class="form-input mt-1 block w-full rounded-lg border-gray-600 bg-gray-700 text-gray-200 p-2 focus:ring-indigo-500 focus:border-indigo-500">
-                <button type="submit" name="create_folder" class="mt-2 px-4 py-2 bg-indigo-600 text-white font-semibold rounded-lg shadow-md hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-opacity-75">
-                    <i class="bi bi-folder-plus"></i> Créer Dossier
-                </button>
-            </form>
-            <form action="" method="post" enctype="multipart/form-data" class="mr-4">
-                <input type="file" name="upload_file" class="form-input mt-1 block w-full rounded-lg border-gray-600 bg-gray-700 text-gray-200 p-2 focus:ring-indigo-500 focus:border-indigo-500">
-                <button type="submit" name="upload" class="mt-2 px-4 py-2 bg-indigo-600 text-white font-semibold rounded-lg shadow-md hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-opacity-75">
-                    <i class="bi bi-upload"></i> Uploader
-                </button>
-            </form>
-            <form action="" method="post" enctype="multipart/form-data">
-                <input type="file" name="upload_zip" class="form-input mt-1 block w-full rounded-lg border-gray-600 bg-gray-700 text-gray-200 p-2 focus:ring-indigo-500 focus:border-indigo-500">
-                <button type="submit" name="extract_zip" class="mt-2 px-4 py-2 bg-indigo-600 text-white font-semibold rounded-lg shadow-md hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-opacity-75">
-                    <i class="bi bi-file-earmark-zip"></i> Extraire Zip
-                </button>
-            </form>
-        </div>
-        
-        <form method="post" id="fileForm">
-            <ul>
-                <li class="mb-2 flex items-center">
-                    <input type="checkbox" onclick="toggleSelectAll(this)" class="form-checkbox h-5 w-5 text-indigo-600 rounded focus:ring-indigo-500 mr-2">
-                    <label for="select_all" class="text-gray-200">Tout sélectionner</label>
-                </li>
-                <?php
-                function listFiles($dir) {
-                    $files = scandir($dir);
-                    foreach ($files as $file) {
-                        if ($file !== '.' && $file !== '..' && $file !== 'index.php') { 
-                            echo '<li class="mb-2 flex items-center">';
-                            echo '<input type="checkbox" name="selected_files[]" value="' . htmlspecialchars($file) . '" class="form-checkbox h-5 w-5 text-indigo-600 rounded focus:ring-indigo-500 mr-2">';
-                            if (is_dir($dir . '/' . $file)) {
-                                echo '<i class="bi bi-folder-fill text-yellow-500 mr-2"></i>';
-                                echo '<a href="?dir=' . urlencode(trim($GLOBALS['currentDir'] . '/' . $file, '/')) . '" class="text-indigo-400 hover:underline">' . htmlspecialchars($file) . '</a>';
-                            } else {
-                                echo '<i class="bi bi-file-earmark-fill text-gray-500 mr-2"></i>';
-                                echo htmlspecialchars($file);
-                                if (is_file($dir . '/' . $file)) {
-                                    echo '<a href="?download=' . urlencode(trim($GLOBALS['currentDir'] . '/' . $file, '/')) . '" class="text-green-500 hover:text-green-700 ml-4"><i class="bi bi-download"></i></a>';
+        <?php if (!hasPermission($utilisateur, 'file_access')): ?>
+            <div id="overlay" class="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center">
+                <div class="bg-gray-800 p-8 rounded-lg text-center">
+                    <h3 class="text-xl font-bold mb-4">Accès refusé</h3>
+                    <p class="mb-6">Vous n'avez pas la permission d'accéder à l'explorateur de fichiers.</p>
+                    <a href="settings" class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">
+                        Retour au panel
+                    </a>
+                </div>
+            </div>
+        <?php else: ?>
+            <div class="flex mb-4">
+                <form action="" method="post" class="mr-4">
+                    <input type="text" name="new_folder" placeholder="Nom du dossier" class="form-input mt-1 block w-full rounded-lg border-gray-600 bg-gray-700 text-gray-200 p-2 focus:ring-indigo-500 focus:border-indigo-500">
+                    <button type="submit" name="create_folder" class="mt-2 px-4 py-2 bg-indigo-600 text-white font-semibold rounded-lg shadow-md hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-opacity-75">
+                        <i class="bi bi-folder-plus"></i> Créer Dossier
+                    </button>
+                </form>
+                <form action="" method="post" enctype="multipart/form-data" class="mr-4">
+                    <input type="file" name="upload_file" class="form-input mt-1 block w-full rounded-lg border-gray-600 bg-gray-700 text-gray-200 p-2 focus:ring-indigo-500 focus:border-indigo-500">
+                    <button type="submit" name="upload" class="mt-2 px-4 py-2 bg-indigo-600 text-white font-semibold rounded-lg shadow-md hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-opacity-75">
+                        <i class="bi bi-upload"></i> Uploader
+                    </button>
+                </form>
+                <form action="" method="post" enctype="multipart/form-data">
+                    <input type="file" name="upload_zip" class="form-input mt-1 block w-full rounded-lg border-gray-600 bg-gray-700 text-gray-200 p-2 focus:ring-indigo-500 focus:border-indigo-500">
+                    <button type="submit" name="extract_zip" class="mt-2 px-4 py-2 bg-indigo-600 text-white font-semibold rounded-lg shadow-md hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-opacity-75">
+                        <i class="bi bi-file-earmark-zip"></i> Extraire Zip
+                    </button>
+                </form>
+            </div>
+            
+            <form method="post" id="fileForm">
+                <ul>
+                    <li class="mb-2 flex items-center">
+                        <input type="checkbox" onclick="toggleSelectAll(this)" class="form-checkbox h-5 w-5 text-indigo-600 rounded focus:ring-indigo-500 mr-2">
+                        <label for="select_all" class="text-gray-200">Tout sélectionner</label>
+                    </li>
+                    <?php
+                    function listFiles($dir) {
+                        $files = scandir($dir);
+                        foreach ($files as $file) {
+                            if ($file !== '.' && $file !== '..' && $file !== 'index.php') { 
+                                echo '<li class="mb-2 flex items-center">';
+                                echo '<input type="checkbox" name="selected_files[]" value="' . htmlspecialchars($file) . '" class="form-checkbox h-5 w-5 text-indigo-600 rounded focus:ring-indigo-500 mr-2">';
+                                if (is_dir($dir . '/' . $file)) {
+                                    echo '<i class="bi bi-folder-fill text-yellow-500 mr-2"></i>';
+                                    echo '<a href="?dir=' . urlencode(trim($GLOBALS['currentDir'] . '/' . $file, '/')) . '" class="text-indigo-400 hover:underline">' . htmlspecialchars($file) . '</a>';
+                                } else {
+                                    echo '<i class="bi bi-file-earmark-fill text-gray-500 mr-2"></i>';
+                                    echo htmlspecialchars($file);
+                                    if (is_file($dir . '/' . $file)) {
+                                        echo '<a href="?download=' . urlencode(trim($GLOBALS['currentDir'] . '/' . $file, '/')) . '" class="text-green-500 hover:text-green-700 ml-4"><i class="bi bi-download"></i></a>';
+                                    }
                                 }
+                                echo '<a href="?delete=' . urlencode(trim($GLOBALS['currentDir'] . '/' . $file, '/')) . '" class="text-red-500 hover:text-red-700 ml-4"><i class="bi bi-trash"></i></a>';
+                                echo '</li>';
                             }
-                            echo '<a href="?delete=' . urlencode(trim($GLOBALS['currentDir'] . '/' . $file, '/')) . '" class="text-red-500 hover:text-red-700 ml-4"><i class="bi bi-trash"></i></a>';
-                            echo '</li>';
                         }
                     }
-                }
 
-                if ($currentDir) {
-                    $parentDir = dirname($currentDir);
-                    echo '<li class="mb-2">';
-                    echo '<i class="bi bi-arrow-left-short text-gray-500 mr-2"></i>';
-                    echo '<a href="?dir=' . urlencode($parentDir) . '" class="text-indigo-400 hover:underline">.. (Retour)</a>';
-                    echo '</li>';
-                }
+                    if ($currentDir) {
+                        $parentDir = dirname($currentDir);
+                        echo '<li class="mb-2">';
+                        echo '<i class="bi bi-arrow-left-short text-gray-500 mr-2"></i>';
+                        echo '<a href="?dir=' . urlencode($parentDir) . '" class="text-indigo-400 hover:underline">.. (Retour)</a>';
+                        echo '</li>';
+                    }
 
-                listFiles($fullPath);
-                ?>
-            </ul>
-            <div id="actionButtons" class="mt-4" style="display: none;">
-                <button type="submit" name="delete_selected" id="deleteButton" class="px-4 py-2 bg-red-600 text-white font-semibold rounded-lg shadow-md hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-opacity-75">
-                    <i class="bi bi-trash"></i> Supprimer Sélectionnés
-                </button>
-                <button type="submit" name="create_zip" id="zipButton" class="px-4 py-2 bg-green-600 text-white font-semibold rounded-lg shadow-md hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-opacity-75 ml-2">
-                    <i class="bi bi-file-earmark-zip"></i> Créer ZIP
-                </button>
-            </div>
-        </form>
+                    listFiles($fullPath);
+                    ?>
+                </ul>
+                <div id="actionButtons" class="mt-4" style="display: none;">
+                    <button type="submit" name="delete_selected" id="deleteButton" class="px-4 py-2 bg-red-600 text-white font-semibold rounded-lg shadow-md hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-opacity-75">
+                        <i class="bi bi-trash"></i> Supprimer Sélectionnés
+                    </button>
+                    <button type="submit" name="create_zip" id="zipButton" class="px-4 py-2 bg-green-600 text-white font-semibold rounded-lg shadow-md hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-opacity-75 ml-2">
+                        <i class="bi bi-file-earmark-zip"></i> Créer ZIP
+                    </button>
+                </div>
+            </form>
+        <?php endif; ?>
     </div>
 </div>
 
+<?php if (hasPermission($utilisateur, 'file_access')): ?>
 <script>
 function toggleSelectAll(source) {
     var checkboxes = document.getElementsByName('selected_files[]');
@@ -270,14 +286,13 @@ function updateActionButtons() {
     }
 }
 
-// Ajouter des écouteurs d'événements à toutes les cases à cocher
 var checkboxes = document.getElementsByName('selected_files[]');
 for (var i = 0; i < checkboxes.length; i++) {
     checkboxes[i].addEventListener('change', updateActionButtons);
 }
 
-// Appeler updateActionButtons au chargement de la page
 updateActionButtons();
 </script>
+<?php endif; ?>
 
 <?php require_once './ui/footer.php'; ?>
