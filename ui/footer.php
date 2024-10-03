@@ -21,7 +21,7 @@ if (file_exists($versionFile)) {
         <a href="https://discord.dium-corp.fr" class="mx-2" target="_blank" title="Rejoindre notre Discord">
             <i class="bi bi-discord text-2xl"></i>
         </a>
-        <a href="https://github.com/DiumStream-tech/Dium-Craft-Panel" class="mx-2" target="_blank" title="Notre GitHub">
+        <a href="https://github.com/DiumStream-dev/DiumStream-Panel-Dev" class="mx-2" target="_blank" title="Notre GitHub">
             <i class="bi bi-github text-2xl"></i>
         </a>
     </div>

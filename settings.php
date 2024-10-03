@@ -424,7 +424,7 @@ function getCurrentVersion() {
 }
 
 function getLatestVersion() {
-    $url = 'https://raw.githubusercontent.com/DiumStream-dev/Dium-Craft-Panel-Dev/main/update/version.txt';
+    $url = 'https://raw.githubusercontent.com/DiumStream-dev/DiumStream-Panel-Dev/main/update/version.txt';
     $opts = [
         "http" => [
             "method" => "GET",

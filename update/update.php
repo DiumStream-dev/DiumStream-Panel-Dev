@@ -27,7 +27,7 @@ function getCurrentVersion() {
 }
 
 function getLatestVersion() {
-    $url = 'https://raw.githubusercontent.com/DiumStream-dev/Dium-Craft-Panel-Dev/main/update/version.txt';
+    $url = 'https://raw.githubusercontent.com/DiumStream-dev/DiumStream-Panel-Dev/main/update/version.txt';
     $opts = [
         "http" => [
             "method" => "GET",
@@ -44,7 +44,7 @@ function isNewVersionAvailable($currentVersion, $latestVersion) {
 
 function updateFiles() {
     $zipFile = 'update.zip';
-    $url = 'https://github.com/DiumStream-dev/Dium-Craft-Panel-Dev/archive/refs/heads/main.zip';
+    $url = 'https://github.com/DiumStream-dev/DiumStream-Panel-Dev/archive/refs/heads/main.zip';
 
     file_put_contents($zipFile, fopen($url, 'r'));
 
@@ -57,7 +57,7 @@ function updateFiles() {
         $zip->close();
         unlink($zipFile);
 
-        $innerFolder = $extractPath . '/Dium-Craft-Panel-Dev-main';
+        $innerFolder = $extractPath . '/DiumStream-Panel-Dev-main';
         if (is_dir($innerFolder)) {
             $files = new RecursiveIteratorIterator(
                 new RecursiveDirectoryIterator($innerFolder, RecursiveDirectoryIterator::SKIP_DOTS),
