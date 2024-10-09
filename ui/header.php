@@ -80,8 +80,7 @@
                                 </a>
                             </div>
                         </div>
-                    </div>
-                    
+                    </div>                    
                     <div class="relative inline-block text-left">
                     <button type="button" class="inline-flex w-full justify-center gap-x-1.5 rounded-md bg-blue-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-blue-700" id="menu-button-settings" aria-expanded="true" aria-haspopup="true">
                             <i class="bi bi-sliders mr-2"></i> Paramètres Panel
@@ -91,18 +90,12 @@
                         </button>
                         <div id="settings-panel-dropdown" class="hidden absolute right-0 z-10 mt-2 w-56 origin-top-right rounded-md bg-white shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none" role="menu" aria-orientation="vertical" aria-labelledby="menu-button-settings" tabindex="-1">
                             <div class="py-1" role="none">
-                                <form id="importForm" method="post" action="utils/import.php" enctype="multipart/form-data">
-                                <label class="block px-4 py-2 hover:bg-gray-100 text-gray-700 cursor-pointer" role="menuitem" tabindex="-1" id="menu-item-0">
-                                        <i class="bi bi-file-earmark-arrow-up mr-2"></i> Importer
-                                        <input type="file" id="jsonFileInput" name="json_file" class="hidden" accept=".json" required>
-                                    </label>
-                                </form>
-                                <a href="./utils/export" class="block px-4 py-2 text-gray-700 hover:bg-gray-100" role="menuitem" tabindex="-1" id="menu-item-1">
-                                    <i class="bi bi-file-earmark-arrow-down mr-2"></i> Exporter
-                                </a>                         
+                                <a href="#" class="block px-4 py-2 text-gray-700 hover:bg-gray-100" role="menuitem" tabindex="-1" id="import-export-button">
+                                    <i class="bi bi-arrow-down-up mr-2"></i> Importer/Exporter
+                                </a>
                                 <a href="file" class="block px-4 py-2 text-gray-700 hover:bg-gray-100" role="menuitem" tabindex="-1" id="menu-item-5">
                                     <i class="bi bi-folder mr-2"></i> Fichiers Panel
-                                </a>                                
+                                </a>
                                 <a href="account/new/register" class="block px-4 py-2 text-gray-700 hover:bg-gray-100" role="menuitem" tabindex="-1" id="menu-item-4">
                                     <i class="bi bi-person-plus mr-2"></i> Ajouter un utilisateur
                                 </a>
@@ -121,11 +114,38 @@
             </div>
         </div>
     </nav>
-    <script>
-        document.getElementById('jsonFileInput').addEventListener('change', function() {
-            document.getElementById('importForm').submit();
-        });
 
+    <div id="import-export-overlay" class="fixed inset-0 bg-gray-900 bg-opacity-75 overflow-y-auto h-full w-full hidden z-50">
+        <div class="relative top-20 mx-auto p-5 w-96 shadow-lg rounded-md bg-gray-800 text-white">
+            <div class="mt-3 text-center">
+                <h3 class="text-lg leading-6 font-medium">Importer/Exporter</h3>
+                <div class="mt-4 px-7 py-3">
+                    <form id="importForm" method="post" action="utils/import_export.php" enctype="multipart/form-data">
+                        <div class="mb-4">
+                            <label class="block text-white cursor-pointer">
+                                <span class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded inline-block w-full transition duration-300">
+                                    <i class="bi bi-file-earmark-arrow-up mr-2"></i> Importer
+                                </span>
+                                <input type="file" id="jsonFileInput" name="json_file" class="hidden" accept=".json">
+                            </label>
+                        </div>
+                    </form>
+                    <div class="mb-4">
+                        <a href="utils/import_export.php?action=export" class="bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-4 rounded inline-block w-full transition duration-300">
+                            <i class="bi bi-file-earmark-arrow-down mr-2"></i> Exporter
+                        </a>
+                    </div>
+                </div>
+                <div class="items-center px-4 py-3">
+                    <button id="close-overlay" class="px-4 py-2 bg-red-600 text-white text-base font-medium rounded-md w-full shadow-sm hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-300 transition duration-300">
+                        Fermer
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
         document.getElementById('nav-toggle').addEventListener('click', function() {
             var navContent = document.getElementById('nav-content');
             navContent.classList.toggle('hidden');
@@ -139,6 +159,25 @@
         document.getElementById('menu-button-settings').addEventListener('click', function() {
             var dropdown = document.getElementById('settings-panel-dropdown');
             dropdown.classList.toggle('hidden');
+        });
+
+        document.getElementById('import-export-button').addEventListener('click', function(e) {
+            e.preventDefault();
+            document.getElementById('import-export-overlay').classList.remove('hidden');
+        });
+
+        document.getElementById('close-overlay').addEventListener('click', function() {
+            document.getElementById('import-export-overlay').classList.add('hidden');
+        });
+
+        document.getElementById('import-export-overlay').addEventListener('click', function(e) {
+            if (e.target === this) {
+                this.classList.add('hidden');
+            }
+        });
+
+        document.getElementById('jsonFileInput').addEventListener('change', function() {
+            document.getElementById('importForm').submit();
         });
 
         window.addEventListener('click', function(e) {
