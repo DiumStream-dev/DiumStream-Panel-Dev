@@ -9,6 +9,19 @@
     <link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-icons/1.8.1/font/bootstrap-icons.min.css" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/quill@2.0.2/dist/quill.snow.css" rel="stylesheet" />
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/sweetalert/1.1.3/sweetalert.min.css">
+    <style>
+        @media (max-width: 1536px) {
+            .header-buttons-container {
+                flex-wrap: wrap;
+                justify-content: flex-end;
+            }
+            .logout-button {
+                order: 3;
+                margin-top: 0.5rem;
+                width: 100%;
+            }
+        }
+    </style>
 </head>
 <body class="bg-gray-800 text-white">
     <nav class="bg-gray-900 p-4 static w-full z-10 top-0 shadow">
@@ -50,8 +63,8 @@
                         </a>
                     </li>
                 </ul>
-                <div class="flex items-center space-x-4 ml-auto mt-4 2xl:mt-0 relative">
-                    <div class="relative inline-block text-left">
+                <div class="flex flex-col 2xl:flex-row items-center space-y-4 2xl:space-y-0 2xl:space-x-4 mt-4 2xl:mt-0 header-buttons-container">
+                    <div class="relative inline-block text-left w-full 2xl:w-auto">
                     <button type="button" class="inline-flex w-full justify-center gap-x-1.5 rounded-md bg-yellow-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-yellow-700" id="menu-button-other" aria-expanded="true" aria-haspopup="true">
                     <i class="bi bi-three-dots mr-2"></i> Autres
                             <svg class="-mr-1 h-5 w-5 text-white" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
@@ -81,7 +94,7 @@
                             </div>
                         </div>
                     </div>                    
-                    <div class="relative inline-block text-left">
+                    <div class="relative inline-block text-left w-full 2xl:w-auto">
                     <button type="button" class="inline-flex w-full justify-center gap-x-1.5 rounded-md bg-blue-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-blue-700" id="menu-button-settings" aria-expanded="true" aria-haspopup="true">
                             <i class="bi bi-sliders mr-2"></i> Paramètres Panel
                             <svg class="-mr-1 h-5 w-5 text-white" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
@@ -105,8 +118,8 @@
                             </div>
                         </div>
                     </div>
-                    <form class="flex items-center" method="post" action="">
-                        <button class="bg-red-600 hover:bg-red-700 text-white font-bold py-2 px-4 rounded flex items-center space-x-2" type="submit" name="logout">
+                    <form class="w-full 2xl:w-auto logout-button" method="post" action="">
+                        <button class="bg-red-600 hover:bg-red-700 text-white font-bold py-2 px-4 rounded flex items-center justify-center w-full" type="submit" name="logout">
                             <i class="bi bi-box-arrow-left mr-2"></i> Déconnexion
                         </button>
                     </form>
