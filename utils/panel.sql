@@ -115,6 +115,8 @@ CREATE TABLE `users` (
   `email` varchar(255) NOT NULL,
   `token` varchar(255) DEFAULT NULL,
   `permissions` varchar(255) DEFAULT NULL,
+  `two_factor_enabled` tinyint(1) NOT NULL DEFAULT 0,
+  `two_factor_secret` varchar(32) DEFAULT NULL,
   PRIMARY KEY (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_general_ci;
 

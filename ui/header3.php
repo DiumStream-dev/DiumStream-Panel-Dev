@@ -24,7 +24,7 @@
 <body class="bg-gray-800 text-white">
     <nav class="bg-gray-900 p-4 static w-full z-10 top-0 shadow">
         <div class="container mx-auto flex flex-wrap items-center justify-between">
-            <a class="text-xl font-bold" href="settings#">Panel</a>
+            <a class="text-xl font-bold" href="../settings#">Panel</a>
             <button class="text-white 2xl:hidden" id="nav-toggle">
                 <i class="bi bi-list"></i>
             </button>

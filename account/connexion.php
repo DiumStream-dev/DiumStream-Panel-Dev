@@ -6,8 +6,10 @@ if (!file_exists($configFilePath)) {
     exit();
 }
 require_once '../connexion_bdd.php';
+require_once '../vendor/autoload.php';
 
-// Fonction de journalisation
+use Sonata\GoogleAuthenticator\GoogleAuthenticator;
+
 function ajouter_log($user, $action) {
     $logsFilePath = '../logs/logs.json';
     $logEntry = [
@@ -17,18 +19,6 @@ function ajouter_log($user, $action) {
     ];
     $logJson = json_encode($logEntry) . "\n";
     file_put_contents($logsFilePath, $logJson, FILE_APPEND);
-}
-
-if (isset($_SESSION['user_token'])) {
-    $stmt = $pdo->prepare("SELECT * FROM users WHERE token = :token");
-    $stmt->bindParam(':token', $_SESSION['user_token']);
-    $stmt->execute();
-    $utilisateur = $stmt->fetch();
-
-    if ($utilisateur) {
-        header('Location: ../settings');
-        exit();
-    }
 }
 
 function generateToken($length = 40) {
@@ -54,52 +44,89 @@ if (!$comptesExistants) {
 }
 
 $errors = [];
+$show_2fa_form = false;
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    $email = $_POST['email'];
-    $password = $_POST['password'];
+    if (isset($_POST['email']) && isset($_POST['password'])) {
+        $email = $_POST['email'];
+        $password = $_POST['password'];
 
-    if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
-        $errors[] = "Adresse email invalide.";
-    }
+        if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
+            $errors[] = "Adresse email invalide.";
+        }
 
-    if (empty($password)) {
-        $errors[] = "Veuillez saisir votre mot de passe.";
-    }
+        if (empty($password)) {
+            $errors[] = "Veuillez saisir votre mot de passe.";
+        }
 
-    if (empty($errors)) {
-        try {
-            $sth = $pdo->prepare("SELECT id, password FROM users WHERE email = :email");
-            $sth->execute(['email' => $email]);
+        if (empty($errors)) {
+            try {
+                $sth = $pdo->prepare("SELECT * FROM users WHERE email = :email");
+                $sth->execute(['email' => $email]);
 
-            if ($sth->rowCount() === 0) {
-                $errors[] = "Adresse email ou mot de passe incorrect.";
-            } else {
-                $user = $sth->fetch();
-
-                if (!password_verify($password, $user['password'])) {
+                if ($sth->rowCount() === 0) {
                     $errors[] = "Adresse email ou mot de passe incorrect.";
                 } else {
-                    $token = generateToken();
+                    $user = $sth->fetch();
 
-                    $_SESSION['user_email'] = $email;
-                    $_SESSION['user_token'] = $token;
+                    if (!password_verify($password, $user['password'])) {
+                        $errors[] = "Adresse email ou mot de passe incorrect.";
+                    } else {
+                        if ($user['two_factor_secret']) {
+                            // 2FA est activée, afficher le formulaire 2FA
+                            $_SESSION['temp_user_id'] = $user['id'];
+                            $show_2fa_form = true;
+                        } else {
+                            // 2FA n'est pas activée, connexion directe
+                            $token = generateToken();
+                            $_SESSION['user_email'] = $email;
+                            $_SESSION['user_token'] = $token;
 
-                    $stmt = $pdo->prepare("UPDATE users SET token = :token WHERE email = :email");
-                    $stmt->bindParam(':token', $token);
-                    $stmt->bindParam(':email', $email);
-                    $stmt->execute();
+                            $stmt = $pdo->prepare("UPDATE users SET token = :token WHERE email = :email");
+                            $stmt->bindParam(':token', $token);
+                            $stmt->bindParam(':email', $email);
+                            $stmt->execute();
 
-                    // Ajout du log pour la connexion réussie
-                    ajouter_log($email, "Connexion réussie");
+                            ajouter_log($email, "Connexion réussie");
 
-                    header('Location: ../settings');
-                    exit();
+                            header('Location: ../settings');
+                            exit();
+                        }
+                    }
                 }
+            } catch (PDOException $e) {
+                echo "Erreur de connexion à la base de données: " . $e->getMessage();
+                exit();
             }
-        } catch (PDOException $e) {
-            echo "Erreur de connexion à la base de données: " . $e->getMessage();
+        }
+    } elseif (isset($_POST['2fa_code'])) {
+        // Vérification du code 2FA
+        $code = $_POST['2fa_code'];
+        
+        $stmt = $pdo->prepare("SELECT * FROM users WHERE id = :id");
+        $stmt->execute(['id' => $_SESSION['temp_user_id']]);
+        $user = $stmt->fetch(PDO::FETCH_ASSOC);
+
+        $g = new GoogleAuthenticator();
+        if ($g->checkCode($user['two_factor_secret'], $code)) {
+            // Code correct, connecter l'utilisateur
+            $token = generateToken();
+            $_SESSION['user_email'] = $user['email'];
+            $_SESSION['user_token'] = $token;
+
+            $stmt = $pdo->prepare("UPDATE users SET token = :token WHERE id = :id");
+            $stmt->bindParam(':token', $token);
+            $stmt->bindParam(':id', $user['id']);
+            $stmt->execute();
+
+            ajouter_log($user['email'], "Connexion réussie avec 2FA");
+
+            unset($_SESSION['temp_user_id']);
+            header('Location: ../settings');
             exit();
+        } else {
+            $errors[] = "Code 2FA incorrect.";
+            $show_2fa_form = true;
         }
     }
 }
@@ -107,7 +134,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
 <!DOCTYPE html>
 <html lang="fr">
-
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -130,6 +156,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                         <?php endforeach; ?>
                     </div>
                     <?php endif; ?>
+                    <?php if (!$show_2fa_form): ?>
                     <form method="post" action="">
                         <div class="mb-6">
                             <label for="email" class="block text-sm font-medium text-gray-400 mb-2">Adresse email</label>
@@ -146,18 +173,31 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                                 <i id="togglePassword" class="bi bi-eye-fill absolute right-3 top-2.5 cursor-pointer text-gray-400"></i>
                             </div>
                         </div>
-
                         <div class="flex items-center justify-center">
                             <button type="submit" name="submit" class="bg-indigo-500 text-white py-2 px-4 rounded-lg hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-opacity-50">
                                 <i class="bi bi-save"></i> Se connecter
                             </button>
                         </div>
-
                     </form>
+                    <?php else: ?>
+                    <form method="post" action="">
+                        <div class="mb-6">
+                            <label for="2fa_code" class="block text-sm font-medium text-gray-400 mb-2">Code 2FA</label>
+                            <div class="relative">
+                                <input type="text" id="2fa_code" name="2fa_code" class="form-input mt-1 block w-full rounded-lg border-gray-600 bg-gray-700 text-gray-200 p-2 focus:ring-indigo-500 focus:border-indigo-500" required>
+                                <i class="bi bi-shield-lock-fill absolute right-3 top-2.5 text-gray-400"></i>
+                            </div>
+                        </div>
+                        <div class="flex items-center justify-center">
+                            <button type="submit" name="submit_2fa" class="bg-indigo-500 text-white py-2 px-4 rounded-lg hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-opacity-50">
+                                <i class="bi bi-shield-check"></i> Vérifier
+                            </button>
+                        </div>
+                    </form>
+                    <?php endif; ?>
                 </div>
             </div>
         </div>
     </div>
 </body>
-
 </html>
