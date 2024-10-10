@@ -31,32 +31,32 @@
             <div class="w-full 2xl:flex 2xl:items-center 2xl:w-auto hidden 2xl:block" id="nav-content">
                 <ul class="flex flex-wrap items-center text-sm space-x-4">
                     <li class="nav-item">
-                        <a class="block 2xl:inline-block px-4 py-2" href="../../settings#">
+                        <a class="block 2xl:inline-block px-4 py-2" href="../settings#">
                         <i class="bi bi-gear mr-2"></i> Général
                         </a>
                     </li>
                     <li class="nav-item">
-                        <a class="block 2xl:inline-block px-4 py-2" href="../../settings#server-info-settings">
+                        <a class="block 2xl:inline-block px-4 py-2" href="../settings#server-info-settings">
                         <i class="bi bi-hdd-network mr-2"></i> Serveur
                         </a>
                     </li>
                     <li class="nav-item">
-                        <a class="block 2xl:inline-block px-4 py-2" href="../../settings#loader-settings">
+                        <a class="block 2xl:inline-block px-4 py-2" href="../settings#loader-settings">
                         <i class="bi bi-cloud-arrow-down mr-2"></i> Loader
                         </a>
                     </li>
                     <li class="nav-item">
-                        <a class="block 2xl:inline-block px-4 py-2" href="../../settings#mods-settings">
+                        <a class="block 2xl:inline-block px-4 py-2" href="../settings#mods-settings">
                         <i class="bi bi-puzzle mr-2"></i> Mods optionnels
                         </a>
                     </li>
                     <li class="nav-item">
-                        <a class="block 2xl:inline-block px-4 py-2" href="../../settings#maintenance-settings">
+                        <a class="block 2xl:inline-block px-4 py-2" href="../settings#maintenance-settings">
                         <i class="bi bi-tools mr-2"></i> Maintenance
                         </a>
                     </li>
                     <li class="nav-item">
-                        <a class="block 2xl:inline-block px-4 py-2" href="../../settings#whitelist-settings">
+                        <a class="block 2xl:inline-block px-4 py-2" href="../settings#whitelist-settings">
                         <i class="bi bi-person-check mr-2"></i> Whitelist
                         </a>
                     </li>
@@ -71,22 +71,22 @@
                         </button>
                         <div id="other-dropdown" class="hidden absolute right-0 z-10 mt-2 w-56 origin-top-right rounded-md bg-white shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none" role="menu" aria-orientation="vertical" aria-labelledby="menu-button-other" tabindex="-1">
                             <div class="py-1" role="none">
-                                <a class="block px-4 py-2 text-gray-700 hover:bg-gray-100" role="menuitem" tabindex="-1" id="menu-item-1" href="../../settings#video-settings">
+                                <a class="block px-4 py-2 text-gray-700 hover:bg-gray-100" role="menuitem" tabindex="-1" id="menu-item-1" href="../settings#video-settings">
                                 <i class="bi bi-camera-video mr-2"></i> Vidéo communautaire
                                 </a>
-                                <a class="block px-4 py-2 text-gray-700 hover:bg-gray-100" role="menuitem" tabindex="-1" id="menu-item-1" href="../../settings#alert-settings">
+                                <a class="block px-4 py-2 text-gray-700 hover:bg-gray-100" role="menuitem" tabindex="-1" id="menu-item-1" href="../settings#alert-settings">
                                 <i class="bi bi-bell mr-2"></i> Alerte
                                 </a>
-                                <a class="block px-4 py-2 text-gray-700 hover:bg-gray-100" role="menuitem" tabindex="-1" id="menu-item-1" href="../../settings#ignored-folders-settings">
+                                <a class="block px-4 py-2 text-gray-700 hover:bg-gray-100" role="menuitem" tabindex="-1" id="menu-item-1" href="../settings#ignored-folders-settings">
                                 <i class="bi bi-folder-x mr-2"></i> Dossiers ignorés
                                 </a>
-                                <a class="block px-4 py-2 text-gray-700 hover:bg-gray-100" role="menuitem" tabindex="-1" id="menu-item-2" href="../../settings#roles-settings">
+                                <a class="block px-4 py-2 text-gray-700 hover:bg-gray-100" role="menuitem" tabindex="-1" id="menu-item-2" href="../settings#roles-settings">
                                 <i class="bi bi-images mr-2"></i> Fond d'écran par rôle
                                 </a>
-                                <a class="block px-4 py-2 text-gray-700 hover:bg-gray-100" role="menuitem" tabindex="-1" id="menu-item-5" href="../../settings#rpc-settings">
+                                <a class="block px-4 py-2 text-gray-700 hover:bg-gray-100" role="menuitem" tabindex="-1" id="menu-item-5" href="../settings#rpc-settings">
                                 <i class="bi bi-discord mr-2"></i> Discord RPC
                                 </a>
-                                <a class="block px-4 py-2 text-gray-700 hover:bg-gray-100" role="menuitem" tabindex="-1" id="menu-item-6" href="../../settings#splash-settings">
+                                <a class="block px-4 py-2 text-gray-700 hover:bg-gray-100" role="menuitem" tabindex="-1" id="menu-item-6" href="../settings#splash-settings">
                                 <i class="bi bi-water mr-2"></i> Splash
                                 </a>
                             </div>
@@ -104,10 +104,10 @@
                                 <a href="#" class="block px-4 py-2 text-gray-700 hover:bg-gray-100" role="menuitem" tabindex="-1" id="import-export-button">
                                     <i class="bi bi-arrow-down-up mr-2"></i> Importer/Exporter
                                 </a>
-                                <a href="../../file" class="block px-4 py-2 text-gray-700 hover:bg-gray-100" role="menuitem" tabindex="-1" id="menu-item-5">
-                                    <i class="bi bi-folder mr-2"></i> Fichiers Panel
+                                <a href="../account/new/register" class="block px-4 py-2 text-gray-700 hover:bg-gray-100" role="menuitem" tabindex="-1" id="menu-item-4">
+                                    <i class="bi bi-person-plus mr-2"></i> Ajouter un utilisateur
                                 </a>
-                                <a href="../../logs/view" class="block px-4 py-2 text-gray-700 hover:bg-gray-100" role="menuitem" tabindex="-1" id="menu-item-5">
+                                <a href="../logs/view" class="block px-4 py-2 text-gray-700 hover:bg-gray-100" role="menuitem" tabindex="-1" id="menu-item-5">
                                     <i class="bi bi-journal-text mr-2"></i> Logs
                                 </a>
                             </div>
