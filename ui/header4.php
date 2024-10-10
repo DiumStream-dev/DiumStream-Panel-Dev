@@ -114,10 +114,15 @@
                         </div>
                     </div>
                     <form class="w-full 2xl:w-auto logout-button" method="post" action="">
-                        <button class="bg-red-600 hover:bg-red-700 text-white font-bold py-2 px-4 rounded flex items-center justify-center w-full" type="submit" name="logout">
+                        <a href="account/mon_compte" class="inline-flex w-full justify-center gap-x-1.5 rounded-md bg-green-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-green-700">
+                            <i class="bi bi-person-circle mr-2"></i> Mon Compte
+                        </a>
+                        </form> 
+                        <form class="w-full 2xl:w-auto logout-button" method="post" action="">
+                            <button class="inline-flex w-full justify-center gap-x-1.5 rounded-md bg-red-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-red-700" type="submit" name="logout">
                             <i class="bi bi-box-arrow-left mr-2"></i> Déconnexion
                         </button>
-                    </form>
+                    </form>  
                 </div>
             </div>
         </div>
