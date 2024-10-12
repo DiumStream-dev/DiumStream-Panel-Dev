@@ -1,5 +1,4 @@
 <?php
-require_once './utils/logs.php';
 session_start();
 $configFilePath = './conn.php';
 if (!file_exists($configFilePath)) {
