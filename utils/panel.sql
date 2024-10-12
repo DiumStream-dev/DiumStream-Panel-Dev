@@ -15,6 +15,13 @@ SET time_zone = "+00:00";
 /*!40101 SET @OLD_CHARACTER_SET_RESULTS=@@CHARACTER_SET_RESULTS */;
 /*!40101 SET @OLD_COLLATION_CONNECTION=@@COLLATION_CONNECTION */;
 /*!40101 SET NAMES utf8 */;
+CREATE TABLE `logs` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `user` varchar(255) NOT NULL,
+  `timestamp` datetime NOT NULL,
+  `action` text NOT NULL,
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_general_ci;
 
 CREATE TABLE `ignored_folders` (
   `folder_name` text NOT NULL,
@@ -39,7 +46,7 @@ CREATE TABLE `mods` (
   `description` text CHARACTER SET utf8 COLLATE utf8_general_ci DEFAULT NULL,
   `icon` varchar(255) CHARACTER SET utf8 COLLATE utf8_general_ci DEFAULT NULL,
   `optional` tinyint(1) DEFAULT 0,
-  `recommended` int(1) DEFAULT 0, -- Modifié de NULL à 0 pour éviter NULL
+  `recommended` int(1) DEFAULT 0,
   `created_at` timestamp NULL DEFAULT current_timestamp(),
   `updated_at` timestamp NULL DEFAULT current_timestamp() ON UPDATE current_timestamp(),
   PRIMARY KEY (`id`)
@@ -80,10 +87,10 @@ CREATE TABLE `options` (
   `rpc_button2` text NOT NULL,
   `rpc_button2_url` text NOT NULL,
   `whitelist_activation` int(11) NOT NULL DEFAULT 0,
-  `alert_activation` int(1) DEFAULT 0, -- Modifié de NULL à 0 pour éviter NULL
-  `alert_scroll` int(1) DEFAULT 0, -- Modifié de NULL à 0 pour éviter NULL
+  `alert_activation` int(1) DEFAULT 0,
+  `alert_scroll` int(1) DEFAULT 0,
   `alert_msg` text DEFAULT NULL,
-  `video_activation` int(11) DEFAULT 0, -- Modifié de NULL à 0 pour éviter NULL
+  `video_activation` int(11) DEFAULT 0,
   `video_url` varchar(255) DEFAULT NULL,
   `email_verified` int(11) NOT NULL DEFAULT 0,
   PRIMARY KEY (`id`)

@@ -8,14 +8,13 @@ if (!file_exists($configFilePath)) {
 require_once '../../connexion_bdd.php';
 
 function ajouter_log($user, $action) {
-    $logsFilePath = '../../logs/logs.json';
-    $logEntry = [
-        'user' => $user,
-        'timestamp' => date('Y-m-d H:i:s'),
-        'action' => $action
-    ];
-    $logJson = json_encode($logEntry) . "\n";
-    file_put_contents($logsFilePath, $logJson, FILE_APPEND);
+    global $pdo;
+    $stmt = $pdo->prepare("INSERT INTO logs (user, timestamp, action) VALUES (:user, :timestamp, :action)");
+    $stmt->execute([
+        ':user' => $user,
+        ':timestamp' => date('Y-m-d H:i:s'),
+        ':action' => $action
+    ]);
 }
 
 function hasPermission($user, $permission) {
@@ -133,7 +132,6 @@ if (isset($_POST['change_password'])) {
         $message = "Les nouveaux mots de passe ne correspondent pas.";
     }
 }
-
 if (isset($_POST['change_permissions'])) {
     $user_id = $_POST['user_id'];
     $permissions = isset($_POST['permissions']) ? implode(',', $_POST['permissions']) : '';
@@ -240,7 +238,6 @@ $users = $stmt->fetchAll(PDO::FETCH_ASSOC);
                 </div>
             </div>
         </div>
-
         <div class="container mx-auto mt-10 p-6 bg-gray-800 text-white border border-gray-700 rounded-lg shadow-lg">
             <h2 class="text-3xl font-bold mb-6 text-center">Liste des utilisateurs</h2>
             <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -275,7 +272,7 @@ $users = $stmt->fetchAll(PDO::FETCH_ASSOC);
                 <h3 class="text-xl font-bold mb-4">Changer le password</h3>
                 <form method="post" action="" id="changePasswordForm">
                     <input type="hidden" name="user_id" id="changePasswordUserId">
-                    <input type="password" name="new_password" placeholder="Nouveau mot de passe" class="form-input mt-1 block w-full rounded-lg border-gray-600 bg-gray-700 text-gray-200 p-2 focus:ring-indigo-500 focus:border-indigo-500" required>
+                    <input type="password" name="new_password" placeholder="Nouveau mot de passe" class="form-input mt-1 block w-full                     rounded-lg border-gray-600 bg-gray-700 text-gray-200 p-2 focus:ring-indigo-500 focus:border-indigo-500" required>
                     <input type="password" name="confirm_new_password" placeholder="Confirmer le mot de passe" class="form-input mt-1 block w-full rounded-lg border-gray-600 bg-gray-700 text-gray-200 p-2 focus:ring-indigo-500 focus:border-indigo-500 mt-2" required>
                     <div class="flex justify-between mt-4">
                         <button type="submit" name="change_password" class="bg-green-500 text-white py-1 px-2 rounded-lg hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-opacity-50">

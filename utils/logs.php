@@ -1,22 +1,21 @@
 <?php
+require_once 'connexion_bdd.php';
 
-
-function logAction($user, $action) {
-    $logEntry = [
-        'user' => $user,
-        'timestamp' => date('Y-m-d H:i:s'),
-        'action' => $action,
-    ];
-
-    $logsFilePath = './logs/logs.json';
-    $logJson = json_encode($logEntry, JSON_UNESCAPED_UNICODE);
-
+function ajouter_log($user, $action) {
+    global $pdo;
     
-    if (!file_exists(dirname($logsFilePath))) {
-        mkdir(dirname($logsFilePath), 0755, true);
+    try {
+        $stmt = $pdo->prepare("INSERT INTO logs (user, timestamp, action) VALUES (:user, :timestamp, :action)");
+        $stmt->execute([
+            ':user' => $user,
+            ':timestamp' => date('Y-m-d H:i:s'),
+            ':action' => $action
+        ]);
+        return true;
+    } catch (PDOException $e) {
+        error_log("Erreur lors de l'ajout du log : " . $e->getMessage());
+        return false;
     }
-
-    
-    file_put_contents($logsFilePath, $logJson . PHP_EOL, FILE_APPEND);
 }
+
 ?>

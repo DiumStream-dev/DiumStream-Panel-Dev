@@ -75,17 +75,13 @@ require_once '../ui/header3.php';
                         </thead>
                         <tbody class="divide-y divide-gray-700">
                             <?php
-                            $logsFilePath = 'logs.json';
-                            if (file_exists($logsFilePath)) {
-                                $logs = file($logsFilePath);
-                                foreach ($logs as $log) {
-                                    $logEntry = json_decode($log, true);
-                                    echo '<tr>';
-                                    echo '<td class="px-6 py-4 whitespace-nowrap text-sm text-gray-300">' . htmlspecialchars($logEntry['user']) . '</td>';
-                                    echo '<td class="px-6 py-4 whitespace-nowrap text-sm text-gray-300">' . htmlspecialchars($logEntry['timestamp']) . '</td>';
-                                    echo '<td class="px-6 py-4 whitespace-nowrap text-sm text-gray-300">' . htmlspecialchars($logEntry['action']) . '</td>';
-                                    echo '</tr>';
-                                }
+                            $stmt = $pdo->query("SELECT * FROM logs ORDER BY timestamp DESC");
+                            while ($logEntry = $stmt->fetch(PDO::FETCH_ASSOC)) {
+                                echo '<tr>';
+                                echo '<td class="px-6 py-4 whitespace-nowrap text-sm text-gray-300">' . htmlspecialchars($logEntry['user']) . '</td>';
+                                echo '<td class="px-6 py-4 whitespace-nowrap text-sm text-gray-300">' . htmlspecialchars($logEntry['timestamp']) . '</td>';
+                                echo '<td class="px-6 py-4 whitespace-nowrap text-sm text-gray-300">' . htmlspecialchars($logEntry['action']) . '</td>';
+                                echo '</tr>';
                             }
                             ?>
                         </tbody>

@@ -11,14 +11,13 @@ require_once '../vendor/autoload.php';
 use Sonata\GoogleAuthenticator\GoogleAuthenticator;
 
 function ajouter_log($user, $action) {
-    $logsFilePath = '../logs/logs.json';
-    $logEntry = [
-        'user' => $user,
-        'timestamp' => date('Y-m-d H:i:s'),
-        'action' => $action
-    ];
-    $logJson = json_encode($logEntry) . "\n";
-    file_put_contents($logsFilePath, $logJson, FILE_APPEND);
+    global $pdo;
+    $stmt = $pdo->prepare("INSERT INTO logs (user, timestamp, action) VALUES (:user, :timestamp, :action)");
+    $stmt->execute([
+        ':user' => $user,
+        ':timestamp' => date('Y-m-d H:i:s'),
+        ':action' => $action
+    ]);
 }
 
 function generateToken($length = 40) {

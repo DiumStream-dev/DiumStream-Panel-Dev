@@ -32,7 +32,7 @@
 <body class="bg-gray-800 text-white">
     <nav class="bg-gray-900 p-4 static w-full z-10 top-0 shadow">
         <div class="container mx-auto flex flex-wrap items-center justify-between">
-            <a class="text-xl font-bold" href="../settings#">Panel</a>
+            <a class="text-xl font-bold" href="../settings">Panel</a>
             <button class="text-white 2xl:hidden" id="nav-toggle">
                 <i class="bi bi-list"></i>
             </button>
@@ -141,7 +141,7 @@
             <div class="mt-3 text-center">
                 <h3 class="text-lg leading-6 font-medium">Importer/Exporter</h3>
                 <div class="mt-4 px-7 py-3">
-                    <form id="importForm" method="post" action="utils/import_export.php" enctype="multipart/form-data">
+                    <form id="importForm" method="post" action="../utils/import_export.php" enctype="multipart/form-data">
                         <div class="mb-4">
                             <label class="block text-white cursor-pointer">
                                 <span class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded inline-block w-full transition duration-300">
@@ -152,7 +152,7 @@
                         </div>
                     </form>
                     <div class="mb-4">
-                        <a href="utils/import_export.php?action=export" class="bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-4 rounded inline-block w-full transition duration-300">
+                        <a href="../utils/import_export.php?action=export" class="bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-4 rounded inline-block w-full transition duration-300">
                             <i class="bi bi-file-earmark-arrow-down mr-2"></i> Exporter
                         </a>
                     </div>

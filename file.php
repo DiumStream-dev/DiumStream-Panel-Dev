@@ -3,6 +3,7 @@ session_start();
 $configFilePath = 'conn.php';
 
 if (isset($_POST['logout'])) {
+    ajouter_log($_SESSION['user_email'], "Déconnexion");
     session_unset();
     session_destroy();
     header('Location: account/connexion');
@@ -37,22 +38,17 @@ if (isset($_SESSION['user_token'])) {
     header('Location: account/connexion');
     exit();
 }
-function addLog($action) {
+
+function ajouter_log($user, $action) {
     global $pdo;
-
-    $stmt = $pdo->prepare("SELECT email FROM users WHERE token = :token");
-    $stmt->bindParam(':token', $_SESSION['user_token']);
-    $stmt->execute();
-    $user = $stmt->fetch(PDO::FETCH_ASSOC);
-
-    $logEntry = [
-        'user' => $user['email'] ?? $_SESSION['user_token'],
-        'timestamp' => date('Y-m-d H:i:s'),
-        'action' => $action
-    ];
-    $logJson = json_encode($logEntry) . "\n";
-    file_put_contents(__DIR__ . '/logs/logs.json', $logJson, FILE_APPEND);
+    $stmt = $pdo->prepare("INSERT INTO logs (user, timestamp, action) VALUES (:user, :timestamp, :action)");
+    $stmt->execute([
+        ':user' => $user,
+        ':timestamp' => date('Y-m-d H:i:s'),
+        ':action' => $action
+    ]);
 }
+
 $baseDir = realpath(__DIR__ . '/data/files'); 
 $currentDir = isset($_GET['dir']) ? $_GET['dir'] : '';
 
@@ -66,14 +62,14 @@ if (isset($_POST['create_folder']) && !empty($_POST['new_folder'])) {
     $newFolder = $fullPath . '/' . $_POST['new_folder'];
     if (!file_exists($newFolder)) {
         mkdir($newFolder, 0777, true);
-        addLog("Création du dossier: " . $_POST['new_folder']);
+        ajouter_log($_SESSION['user_email'], "Création du dossier: " . $_POST['new_folder']);
     }
 }
 
 if (isset($_POST['upload'])) {
     $uploadFile = $fullPath . '/' . basename($_FILES['upload_file']['name']);
     if (move_uploaded_file($_FILES['upload_file']['tmp_name'], $uploadFile)) {
-        addLog("Upload du fichier: " . basename($_FILES['upload_file']['name']));
+        ajouter_log($_SESSION['user_email'], "Upload du fichier: " . basename($_FILES['upload_file']['name']));
     }
 }
 
@@ -85,7 +81,7 @@ if (isset($_POST['extract_zip']) && isset($_FILES['upload_zip'])) {
             $zip->extractTo($fullPath);
             $zip->close();
             unlink($zipFile);
-            addLog("Extraction du zip: " . basename($_FILES['upload_zip']['name']));
+            ajouter_log($_SESSION['user_email'], "Extraction du zip: " . basename($_FILES['upload_zip']['name']));
         }
     }
 }
@@ -94,10 +90,10 @@ if (isset($_GET['delete'])) {
     $deletePath = $baseDir . '/' . $_GET['delete'];
     if (is_file($deletePath)) {
         unlink($deletePath);
-        addLog("Suppression du fichier: " . $_GET['delete']);
+        ajouter_log($_SESSION['user_email'], "Suppression du fichier: " . $_GET['delete']);
     } elseif (is_dir($deletePath)) {
         deleteDirectory($deletePath);
-        addLog("Suppression du dossier: " . $_GET['delete']);
+        ajouter_log($_SESSION['user_email'], "Suppression du dossier: " . $_GET['delete']);
     }
 }
 
@@ -106,13 +102,14 @@ if (isset($_POST['delete_selected']) && !empty($_POST['selected_files'])) {
         $deletePath = $fullPath . '/' . $file;
         if (is_file($deletePath)) {
             unlink($deletePath);
-            addLog("Suppression du fichier: " . $file);
+            ajouter_log($_SESSION['user_email'], "Suppression du fichier: " . $file);
         } elseif (is_dir($deletePath)) {
             deleteDirectory($deletePath);
-            addLog("Suppression du dossier: " . $file);
+            ajouter_log($_SESSION['user_email'], "Suppression du dossier: " . $file);
         }
     }
 }
+
 if (isset($_GET['download'])) {
     $filePath = $baseDir . '/' . $_GET['download'];
     if (is_file($filePath)) {
@@ -121,7 +118,7 @@ if (isset($_GET['download'])) {
         header('Content-Disposition: attachment; filename=' . basename($filePath));
         header('Content-Length: ' . filesize($filePath));
         readfile($filePath);
-        addLog("Téléchargement du fichier: " . $_GET['download']);
+        ajouter_log($_SESSION['user_email'], "Téléchargement du fichier: " . $_GET['download']);
         exit;
     }
 }
@@ -164,13 +161,15 @@ if (isset($_POST['create_zip']) && !empty($_POST['selected_files'])) {
     }, $_POST['selected_files']);
     
     if (createZip($filesToZip, $zipPath)) {
-        addLog("Création du zip: " . $zipName);
+        ajouter_log($_SESSION['user_email'], "Création du zip: " . $zipName);
         header("Location: " . $_SERVER['PHP_SELF'] . "?dir=" . urlencode($currentDir));
         exit;
     }
 }
+
 require_once 'ui/header4.php';
 ?>
+
 <div class="container mx-auto mt-10 p-6 bg-gray-900 text-white border border-gray-700 rounded-lg shadow-lg">
     <div class="grid grid-cols-1 gap-6">
         <h2 class="text-3xl font-bold mb-6 text-gray-100 border-b border-gray-600 pb-2">Explorateur de Fichiers</h2>

@@ -6,6 +6,17 @@ if (!file_exists($configFilePath)) {
     exit();
 }
 require_once '../connexion_bdd.php';
+
+function ajouter_log($user, $action) {
+    global $pdo;
+    $stmt = $pdo->prepare("INSERT INTO logs (user, timestamp, action) VALUES (:user, :timestamp, :action)");
+    $stmt->execute([
+        ':user' => $user,
+        ':timestamp' => date('Y-m-d H:i:s'),
+        ':action' => $action
+    ]);
+}
+
 if (!isset($_SESSION['user_token']) || !isset($_SESSION['user_email'])) {
     header('Location: ../account/connexion');
     exit();
@@ -25,7 +36,6 @@ if (!$utilisateur) {
 }
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_FILES['json_file'])) {
-    // Code d'importation
     if ($_FILES['json_file']['error'] === UPLOAD_ERR_OK) {
         $tempFileName = $_FILES['json_file']['tmp_name'];
         $jsonFile = file_get_contents($tempFileName);
@@ -66,12 +76,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_FILES['json_file'])) {
         if (file_exists($tempFileName)) {
             unlink($tempFileName);
         }
+        ajouter_log($email, "Importation de la base de données");
         header('Location: ../settings');
     } else {
         echo 'Error uploading file.';
     }
 } elseif ($_SERVER['REQUEST_METHOD'] === 'GET' && isset($_GET['action']) && $_GET['action'] === 'export') {
-    // Code d'exportation
     $tables = ['ignored_folders', 'mods', 'options', 'roles', 'users', 'whitelist', 'whitelist_roles'];
     $exportData = [];
 
@@ -87,6 +97,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_FILES['json_file'])) {
     header('Content-Type: application/json');
     header('Content-Disposition: attachment; filename="database_export.json"');
 
+    ajouter_log($email, "Exportation de la base de données");
     echo $jsonData;
 } else {
     header('Location: ../settings');

@@ -29,6 +29,17 @@ if (file_exists($file)) {
 }
 require_once './connexion_bdd.php';
 require('./auth.php');
+
+function ajouter_log($user, $action) {
+    global $pdo;
+    $stmt = $pdo->prepare("INSERT INTO logs (user, timestamp, action) VALUES (:user, :timestamp, :action)");
+    $stmt->execute([
+        ':user' => $user,
+        ':timestamp' => date('Y-m-d H:i:s'),
+        ':action' => $action
+    ]);
+}
+
 if (isset($_POST['logout'])) {
     if (isset($_SESSION['user_email'])) {
         ajouter_log($_SESSION['user_email'], "Déconnexion");
@@ -40,16 +51,6 @@ if (isset($_POST['logout'])) {
     exit();
 }
 
-function ajouter_log($user, $action) {
-    $logsFilePath = 'logs/logs.json';
-    $logEntry = [
-        'user' => $user,
-        'timestamp' => date('Y-m-d H:i:s'),
-        'action' => $action
-    ];
-    $logJson = json_encode($logEntry) . "\n";
-    file_put_contents($logsFilePath, $logJson, FILE_APPEND);
-}
 $sql = "SELECT * FROM options";
 $stmt = $pdo->query($sql);
 
@@ -80,7 +81,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                 $stmt->execute();
 
                 $action = "Modification du rôle $roleName avec l'image de fond $backgroundUrl";
-                logAction($_SESSION['user_email'], $action);
+                ajouter_log($_SESSION['user_email'], $action);
             }
         }    
     }elseif (isset($_POST["submit_maintenance"])) {
@@ -95,7 +96,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         $stmt->execute();
 
         $action = "Modification du mode maintenance avec message : $maintenance_message";
-        logAction($_SESSION['user_email'], $action);
+        ajouter_log($_SESSION['user_email'], $action);
 
     } elseif (isset($_POST["submit_server_info"])) {
         $server_name = $_POST["server_name"];
@@ -110,7 +111,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         $stmt->execute([$server_name, $server_ip, $server_port, $server_img]);
 
         $action = "Modification des informations du serveur : $server_name, $server_ip:$server_port";
-        logAction($_SESSION['user_email'], $action);
+        ajouter_log($_SESSION['user_email'], $action);
 
     }elseif (isset($_POST["submit_loader_settings"])) {
         
@@ -128,7 +129,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             $stmt->execute([$loader_type, $loader_build_version, $loader_forge_version, $loader_activation]);
 
             $action = "Modification des paramètres de chargement : $loader_type, version $loader_build_version, activation $loader_activation";
-            logAction($_SESSION['user_email'], $action);
+            ajouter_log($_SESSION['user_email'], $action);
         
     }elseif (isset($_POST["submit_rpc_settings"])) {
         $rpc_id = $_POST["rpc_id"];
@@ -147,7 +148,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         $stmt->execute([$rpc_id, $rpc_details, $rpc_state, $rpc_large_text, $rpc_small_text, $rpc_activation, $rpc_button1, $rpc_button1_url, $rpc_button2, $rpc_button2_url]);
 
         $action = "Modification des paramètres RPC : ID $rpc_id, détails $rpc_details, état $rpc_state, texte large $rpc_large_text, texte petit $rpc_small_text, activation $rpc_activation, bouton 1 $rpc_button1, URL bouton 1 $rpc_button1_url, bouton 2 $rpc_button2, URL bouton 2 $rpc_button2_url";
-        logAction($_SESSION['user_email'], $action);
+        ajouter_log($_SESSION['user_email'], $action);
     
     }elseif (isset($_POST["submit_splash_info"])) {
         $splash = $_POST["splash"];
@@ -158,7 +159,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         $stmt->execute([$splash, $splash_author]);
 
         $action = "Modification de l'écran de chargement : $splash, auteur $splash_author";
-        logAction($_SESSION['user_email'], $action);
+        ajouter_log($_SESSION['user_email'], $action);
     
     }elseif (isset($_POST["submit_ignored_folder_data"])) {
         $ignored_folder = $_POST["ignored_folder"];
@@ -181,7 +182,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         }
 
         $action = "Mise à jour des dossiers ignorés : $ignored_folder";
-        logAction($_SESSION['user_email'], $action);
+        ajouter_log($_SESSION['user_email'], $action);
 
     }elseif (isset($_POST["submit_whitelist"])) {
         $whitelist = isset($_POST["whitelist_activation"]) ? 1 : 0;
@@ -217,7 +218,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             $stmtRoles->execute();
         }
         $action = "Mise à jour de la liste blanche : activation $whitelist, utilisateurs $whitelistUsers, rôles $whitelistRoles";
-        logAction($_SESSION['user_email'], $action);
+        ajouter_log($_SESSION['user_email'], $action);
     }
     elseif (isset($_POST["submit_general_settings"])) {
         
@@ -262,7 +263,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             $stmt->execute([$embedded_java]);
 
             $action = "Modification des paramètres généraux : rôle $role, argent $money, dossier de jeu $game_folder_name, Azuriom $azuriom, mods activés $mods, vérification des fichiers $file_verification, Java intégré $embedded_java";
-            logAction($_SESSION['user_email'], $action);
+            ajouter_log($_SESSION['user_email'], $action);
 }elseif (isset($_POST["add_optional"])) {
     $index = $_POST["add_optional"];
     $modFile = $_POST["file"];
@@ -276,7 +277,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $stmt->execute([$modFile, $modName, $modDescription, $modIcon, 1, $modRecommended]);
 
     $action = "Ajout du mod optionnel : " . $modName;
-    logAction($_SESSION['user_email'], $action);
+    ajouter_log($_SESSION['user_email'], $action);
 } elseif (isset($_POST["update_optional"])) {
     $modId = $_POST["mod_id"];
     $modName = $_POST["optional_name"];
@@ -297,7 +298,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $stmt->execute([$modName, $modDescription, $modIcon, $modRecommended, $modId]);
 
     $action = "Modification du mod optionnel : $modName";
-    logAction($_SESSION['user_email'], $action);
+    ajouter_log($_SESSION['user_email'], $action);
 } elseif (isset($_POST["delete_optional"])) {
     $modId = $_POST["mod_id"];
 
@@ -306,7 +307,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $stmt->execute([$modId]);
 
     $action = "Suppression d'un mod optionnel";
-    logAction($_SESSION['user_email'], $action);
+    ajouter_log($_SESSION['user_email'], $action);
 }elseif (isset($_POST["submit_alert_settings"])) {
     $alert_activation = isset($_POST["alert_activation"]) ? 1 : 0;
     $alert_scroll = isset($_POST["alert_scroll"]) ? 1 : 0;
@@ -317,7 +318,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $stmt->execute([$alert_activation, $alert_scroll, $alert_msg]);
 
     $action = "Modification des paramètres d'alerte : activation $alert_activation, scroll $alert_scroll, message $alert_msg";
-    logAction($_SESSION['user_email'], $action);
+    ajouter_log($_SESSION['user_email'], $action);
 }elseif (isset($_POST["submit_video_settings"])) {
     $video_activation = isset($_POST["video_activation"]) ? 1 : 0;
     $video_url = $_POST["video_url"];
@@ -327,7 +328,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $stmt->execute([$video_activation, $video_url]);
 
     $action = "Modification des paramètres vidéos : activation $video_activation, url $video_url";
-    logAction($_SESSION['user_email'], $action);
+    ajouter_log($_SESSION['user_email'], $action);
 }
 }
 $sql = "SELECT * FROM options";
