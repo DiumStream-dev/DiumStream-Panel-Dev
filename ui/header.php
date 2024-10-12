@@ -10,17 +10,25 @@
     <link href="https://cdn.jsdelivr.net/npm/quill@2.0.2/dist/quill.snow.css" rel="stylesheet" />
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/sweetalert/1.1.3/sweetalert.min.css">
     <style>
-        @media (max-width: 1536px) {
-            .header-buttons-container {
-                flex-wrap: wrap;
-                justify-content: flex-end;
-            }
-            .logout-button {
-                order: 3;
-                margin-top: 0.5rem;
-                width: 100%;
-            }
+    @media (max-width: 1536px) {
+        .header-buttons-container {
+            flex-wrap: wrap;
+            justify-content: flex-end;
         }
+        .logout-button {
+            order: 3;
+            margin-top: 0.5rem;
+            width: 100%;
+        }
+    }
+        ::-webkit-scrollbar {
+            display: none;
+        }
+        body {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+    
     </style>
 </head>
 <body class="bg-gray-800 text-white">

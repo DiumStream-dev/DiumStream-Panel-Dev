@@ -173,7 +173,7 @@ $users = $stmt->fetchAll(PDO::FETCH_ASSOC);
             <div class="bg-gray-800 p-8 rounded-lg text-center">
                 <h3 class="text-xl font-bold mb-4">Accès refusé</h3>
                 <p class="mb-6">Vous n'avez pas la permission d'ajouter ou de gérer les utilisateurs.</p>
-                <a href="/" class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">
+                <a href="../../settings" class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">
                     Retour au panel
                 </a>
             </div>

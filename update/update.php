@@ -26,8 +26,17 @@ function getCurrentVersion() {
     return trim(file_get_contents('version.txt'));
 }
 
+function getUpdateInfo() {
+    $updateJsonPath = 'update.json';
+    if (!file_exists($updateJsonPath)) {
+        throw new Exception('Fichier update.json introuvable.');
+    }
+    return json_decode(file_get_contents($updateJsonPath), true);
+}
+
 function getLatestVersion() {
-    $url = 'https://raw.githubusercontent.com/DiumStream-dev/DiumStream-Panel-Dev/main/update/version.txt';
+    $updateInfo = getUpdateInfo();
+    $url = $updateInfo['version_url'];
     $opts = [
         "http" => [
             "method" => "GET",
@@ -43,8 +52,9 @@ function isNewVersionAvailable($currentVersion, $latestVersion) {
 }
 
 function updateFiles() {
+    $updateInfo = getUpdateInfo();
     $zipFile = 'update.zip';
-    $url = 'https://github.com/DiumStream-dev/DiumStream-Panel-Dev/archive/refs/heads/main.zip';
+    $url = $updateInfo['zip_url'];
 
     file_put_contents($zipFile, fopen($url, 'r'));
 

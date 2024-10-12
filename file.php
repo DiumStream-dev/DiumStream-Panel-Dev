@@ -38,15 +38,21 @@ if (isset($_SESSION['user_token'])) {
     exit();
 }
 function addLog($action) {
+    global $pdo;
+
+    $stmt = $pdo->prepare("SELECT email FROM users WHERE token = :token");
+    $stmt->bindParam(':token', $_SESSION['user_token']);
+    $stmt->execute();
+    $user = $stmt->fetch(PDO::FETCH_ASSOC);
+
     $logEntry = [
-        'user' => $_SESSION['user_token'],
+        'user' => $user['email'] ?? $_SESSION['user_token'],
         'timestamp' => date('Y-m-d H:i:s'),
         'action' => $action
     ];
     $logJson = json_encode($logEntry) . "\n";
     file_put_contents(__DIR__ . '/logs/logs.json', $logJson, FILE_APPEND);
 }
-
 $baseDir = realpath(__DIR__ . '/data/files'); 
 $currentDir = isset($_GET['dir']) ? $_GET['dir'] : '';
 

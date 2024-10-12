@@ -8,17 +8,25 @@
     <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-icons/1.8.1/font/bootstrap-icons.min.css" rel="stylesheet">
     <style>
-        @media (max-width: 1536px) {
-            .header-buttons-container {
-                flex-wrap: wrap;
-                justify-content: flex-end;
-            }
-            .logout-button {
-                order: 3;
-                margin-top: 0.5rem;
-                width: 100%;
-            }
+    @media (max-width: 1536px) {
+        .header-buttons-container {
+            flex-wrap: wrap;
+            justify-content: flex-end;
         }
+        .logout-button {
+            order: 3;
+            margin-top: 0.5rem;
+            width: 100%;
+        }
+    }
+        ::-webkit-scrollbar {
+            display: none;
+        }
+        body {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+    
     </style>
 </head>
 <body class="bg-gray-800 text-white">

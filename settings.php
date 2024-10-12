@@ -423,8 +423,17 @@ function getCurrentVersion() {
     return trim(file_get_contents('update/version.txt'));
 }
 
+function getUpdateInfo() {
+    $updateJsonPath = 'update/update.json';
+    if (!file_exists($updateJsonPath)) {
+        throw new Exception('Fichier update.json introuvable.');
+    }
+    return json_decode(file_get_contents($updateJsonPath), true);
+}
+
 function getLatestVersion() {
-    $url = 'https://raw.githubusercontent.com/DiumStream-dev/DiumStream-Panel-Dev/main/update/version.txt';
+    $updateInfo = getUpdateInfo();
+    $url = $updateInfo['version_url'];
     $opts = [
         "http" => [
             "method" => "GET",
@@ -448,13 +457,19 @@ $isNewVersionAvailable = isNewVersionAvailable($currentVersion, $latestVersion);
 require_once './ui/header.php';
 ?>
 <style>
- .scroll-to-top {
+ .scroll-button {
       position: fixed;
-      bottom: 2rem;
       right: 2rem;
       z-index: 10;
+      display: none;
     }
-  </style>
+ .scroll-to-top {
+      bottom: 5rem;
+    }
+ .scroll-to-bottom {
+      bottom: 2rem;
+    }
+</style>
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 <?php if ($isNewVersionAvailable): ?>
 <script>
@@ -505,11 +520,46 @@ Swal.fire({
 });
 </script>
 <?php endif; ?>
-   <a href="#" class="scroll-to-top bg-gray-900 hover:bg-blue-600 text-white py-2 px-4 rounded-full shadow-lg transition duration-300 ease-in-out">
+   <a href="#" class="scroll-button scroll-to-top bg-gray-900 hover:bg-blue-600 text-white py-2 px-4 rounded-full shadow-lg transition duration-300 ease-in-out">
     <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 inline-block align-middle" fill="none" viewBox="0 0 24 24" stroke="currentColor">
       <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 10l7-7m0 0l7 7m-7-7v18"/>
     </svg>
-  </a>
+   </a>
+   <a href="#" class="scroll-button scroll-to-bottom bg-gray-900 hover:bg-blue-600 text-white py-2 px-4 rounded-full shadow-lg transition duration-300 ease-in-out">
+    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 inline-block align-middle" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 14l-7 7m0 0l-7-7m7 7V3"/>
+    </svg>
+   </a>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    var scrollToTopBtn = document.querySelector('.scroll-to-top');
+    var scrollToBottomBtn = document.querySelector('.scroll-to-bottom');
+
+    window.addEventListener('scroll', function() {
+        var scrollTotal = document.documentElement.scrollHeight - window.innerHeight;
+        if ((window.pageYOffset > 100) && (window.pageYOffset < scrollTotal - 100)) {
+            scrollToTopBtn.style.display = 'block';
+            scrollToBottomBtn.style.display = 'block';
+        } else if (window.pageYOffset <= 100) {
+            scrollToTopBtn.style.display = 'none';
+            scrollToBottomBtn.style.display = 'block';
+        } else {
+            scrollToTopBtn.style.display = 'block';
+            scrollToBottomBtn.style.display = 'none';
+        }
+    });
+
+    scrollToTopBtn.addEventListener('click', function(e) {
+        e.preventDefault();
+        window.scrollTo({top: 0, behavior: 'smooth'});
+    });
+
+    scrollToBottomBtn.addEventListener('click', function(e) {
+        e.preventDefault();
+        window.scrollTo({top: document.documentElement.scrollHeight, behavior: 'smooth'});
+    });
+});
+</script>
 <?php require_once './function/main.php';?>
 <?php require_once './function/serveur.php';?>
 <?php require_once './function/splash.php';?>
