@@ -12,7 +12,7 @@ Ce projet est sous licence CC0-1.0. Voir le fichier [LICENSE](https://github.com
 
 ## Remerciements
 
-- [Riptiaz](https://github.com/Riptiaz) pour le projet original CentralCorp-Panel
+- [Riptiaz est Vexato](https://github.com/Riptiaz) pour le projet original CentralCorp-Panel
 
 ## Contact
 
