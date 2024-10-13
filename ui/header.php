@@ -7,8 +7,6 @@
     <title>Panel</title>
     <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-icons/1.8.1/font/bootstrap-icons.min.css" rel="stylesheet">
-    <link href="https://cdn.jsdelivr.net/npm/quill@2.0.2/dist/quill.snow.css" rel="stylesheet" />
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/sweetalert/1.1.3/sweetalert.min.css">
     <style>
     @media (max-width: 1536px) {
         .header-buttons-container {
@@ -101,8 +99,7 @@
                                 </a>
                             </div>
                         </div>
-                    </div>                    
-                    <div class="relative inline-block text-left w-full 2xl:w-auto">
+                    </div>          <div class="relative inline-block text-left w-full 2xl:w-auto">
                     <button type="button" class="inline-flex w-full justify-center gap-x-1.5 rounded-md bg-blue-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-blue-700" id="menu-button-settings" aria-expanded="true" aria-haspopup="true">
                             <i class="bi bi-sliders mr-2"></i> Paramètres Panel
                             <svg class="-mr-1 h-5 w-5 text-white" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
@@ -111,14 +108,14 @@
                         </button>
                         <div id="settings-panel-dropdown" class="hidden absolute right-0 z-10 mt-2 w-56 origin-top-right rounded-md bg-white shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none" role="menu" aria-orientation="vertical" aria-labelledby="menu-button-settings" tabindex="-1">
                             <div class="py-1" role="none">
-                                <a href="#" class="block px-4 py-2 text-gray-700 hover:bg-gray-100" role="menuitem" tabindex="-1" id="import-export-button">
+                                <a href="utils/import_export.php" class="block px-4 py-2 text-gray-700 hover:bg-gray-100" role="menuitem" tabindex="-1" id="menu-item-3">
                                     <i class="bi bi-arrow-down-up mr-2"></i> Importer/Exporter
-                                </a>
-                                <a href="file" class="block px-4 py-2 text-gray-700 hover:bg-gray-100" role="menuitem" tabindex="-1" id="menu-item-5">
-                                    <i class="bi bi-folder mr-2"></i> Fichiers Panel
                                 </a>
                                 <a href="account/new/register" class="block px-4 py-2 text-gray-700 hover:bg-gray-100" role="menuitem" tabindex="-1" id="menu-item-4">
                                     <i class="bi bi-person-plus mr-2"></i> Ajouter un utilisateur
+                                </a>
+                                <a href="file" class="block px-4 py-2 text-gray-700 hover:bg-gray-100" role="menuitem" tabindex="-1" id="menu-item-5">
+                                    <i class="bi bi-folder mr-2"></i> Fichiers Panel
                                 </a>
                                 <a href="logs/view" class="block px-4 py-2 text-gray-700 hover:bg-gray-100" role="menuitem" tabindex="-1" id="menu-item-5">
                                     <i class="bi bi-journal-text mr-2"></i> Logs
@@ -135,42 +132,11 @@
                             <button class="inline-flex w-full justify-center gap-x-1.5 rounded-md bg-red-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-red-700" type="submit" name="logout">
                             <i class="bi bi-box-arrow-left mr-2"></i> Déconnexion
                         </button>
-                    </form>        
-                    </div>
+                    </form>  
                 </div>
             </div>
         </div>
     </nav>
-
-    <div id="import-export-overlay" class="fixed inset-0 bg-gray-900 bg-opacity-75 overflow-y-auto h-full w-full hidden z-50">
-        <div class="relative top-20 mx-auto p-5 w-96 shadow-lg rounded-md bg-gray-800 text-white">
-            <div class="mt-3 text-center">
-                <h3 class="text-lg leading-6 font-medium">Importer/Exporter</h3>
-                <div class="mt-4 px-7 py-3">
-                    <form id="importForm" method="post" action="utils/import_export.php" enctype="multipart/form-data">
-                        <div class="mb-4">
-                            <label class="block text-white cursor-pointer">
-                                <span class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded inline-block w-full transition duration-300">
-                                    <i class="bi bi-file-earmark-arrow-up mr-2"></i> Importer
-                                </span>
-                                <input type="file" id="jsonFileInput" name="json_file" class="hidden" accept=".json">
-                            </label>
-                        </div>
-                    </form>
-                    <div class="mb-4">
-                        <a href="utils/import_export.php?action=export" class="bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-4 rounded inline-block w-full transition duration-300">
-                            <i class="bi bi-file-earmark-arrow-down mr-2"></i> Exporter
-                        </a>
-                    </div>
-                </div>
-                <div class="items-center px-4 py-3">
-                    <button id="close-overlay" class="px-4 py-2 bg-red-600 text-white text-base font-medium rounded-md w-full shadow-sm hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-300 transition duration-300">
-                        Fermer
-                    </button>
-                </div>
-            </div>
-        </div>
-    </div>
 
     <script>
         document.getElementById('nav-toggle').addEventListener('click', function() {
@@ -188,25 +154,6 @@
             dropdown.classList.toggle('hidden');
         });
 
-        document.getElementById('import-export-button').addEventListener('click', function(e) {
-            e.preventDefault();
-            document.getElementById('import-export-overlay').classList.remove('hidden');
-        });
-
-        document.getElementById('close-overlay').addEventListener('click', function() {
-            document.getElementById('import-export-overlay').classList.add('hidden');
-        });
-
-        document.getElementById('import-export-overlay').addEventListener('click', function(e) {
-            if (e.target === this) {
-                this.classList.add('hidden');
-            }
-        });
-
-        document.getElementById('jsonFileInput').addEventListener('change', function() {
-            document.getElementById('importForm').submit();
-        });
-
         window.addEventListener('click', function(e) {
             var otherButton = document.getElementById('menu-button-other');
             var otherDropdown = document.getElementById('other-dropdown');
@@ -221,7 +168,5 @@
             }
         });
     </script>
-    <script src="https://cdn.jsdelivr.net/npm/quill@2.0.2/dist/quill.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/sweetalert/1.1.3/sweetalert.min.js"></script>
 </body>
 </html>
