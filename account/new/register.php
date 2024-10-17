@@ -132,6 +132,7 @@ if (isset($_POST['change_password'])) {
         $message = "Les nouveaux mots de passe ne correspondent pas.";
     }
 }
+
 if (isset($_POST['change_permissions'])) {
     $user_id = $_POST['user_id'];
     $permissions = isset($_POST['permissions']) ? implode(',', $_POST['permissions']) : '';
@@ -228,6 +229,12 @@ $users = $stmt->fetchAll(PDO::FETCH_ASSOC);
                                     <span class="ml-2">Enregistrer de nouveaux utilisateurs</span>
                                 </label>
                             </div>
+                            <div>
+                                <label class="inline-flex items-center">
+                                    <input type="checkbox" name="permissions[]" value="export_import" class="form-checkbox">
+                                    <span class="ml-2">Exporter/Importer</span>
+                                </label>
+                            </div>
                         </div>
                         <div class="flex items-center justify-center">
                             <button type="submit" name="submit" class="bg-indigo-500 text-white py-2 px-4 rounded-lg hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-opacity-50">
@@ -272,7 +279,7 @@ $users = $stmt->fetchAll(PDO::FETCH_ASSOC);
                 <h3 class="text-xl font-bold mb-4">Changer le password</h3>
                 <form method="post" action="" id="changePasswordForm">
                     <input type="hidden" name="user_id" id="changePasswordUserId">
-                    <input type="password" name="new_password" placeholder="Nouveau mot de passe" class="form-input mt-1 block w-full                     rounded-lg border-gray-600 bg-gray-700 text-gray-200 p-2 focus:ring-indigo-500 focus:border-indigo-500" required>
+                    <input type="password" name="new_password" placeholder="Nouveau mot de passe" class="form-input mt-1 block w-full rounded-lg border-gray-600 bg-gray-700 text-gray-200 p-2 focus:ring-indigo-500 focus:border-indigo-500" required>
                     <input type="password" name="confirm_new_password" placeholder="Confirmer le mot de passe" class="form-input mt-1 block w-full rounded-lg border-gray-600 bg-gray-700 text-gray-200 p-2 focus:ring-indigo-500 focus:border-indigo-500 mt-2" required>
                     <div class="flex justify-between mt-4">
                         <button type="submit" name="change_password" class="bg-green-500 text-white py-1 px-2 rounded-lg hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-opacity-50">
@@ -309,6 +316,12 @@ $users = $stmt->fetchAll(PDO::FETCH_ASSOC);
                             <span class="ml-2">Enregistrer de nouveaux utilisateurs</span>
                         </label>
                     </div>
+                    <div>
+                        <label class="inline-flex items-center">
+                            <input type="checkbox" name="permissions[]" value="export_import" id="perm_export_import" class="form-checkbox">
+                            <span class="ml-2">Exporter/Importer</span>
+                        </label>
+                    </div>
                     <div class="flex justify-between mt-4">
                         <button type="submit" name="change_permissions" class="bg-green-500 text-white py-1 px-2 rounded-lg hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-opacity-50">
                             Confirmer
@@ -339,6 +352,7 @@ $users = $stmt->fetchAll(PDO::FETCH_ASSOC);
                 document.getElementById('perm_logs_view').checked = permArray.includes('logs_view');
                 document.getElementById('perm_file_access').checked = permArray.includes('file_access');
                 document.getElementById('perm_register_users').checked = permArray.includes('register_users');
+                document.getElementById('perm_export_import').checked = permArray.includes('export_import');
                 document.getElementById('changePermissionsOverlay').classList.remove('hidden');
                 document.getElementById('changePermissionsOverlay').classList.add('flex');
             }
