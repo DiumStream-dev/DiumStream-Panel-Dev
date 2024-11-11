@@ -13,7 +13,6 @@ if (!isset($_SESSION['user_email'])) {
 
 $user_email = $_SESSION['user_email'];
 
-// Récupérer les informations de l'utilisateur
 $stmt = $pdo->prepare("SELECT * FROM users WHERE email = :email");
 $stmt->execute(['email' => $user_email]);
 $user = $stmt->fetch(PDO::FETCH_ASSOC);
@@ -22,7 +21,6 @@ $success_message = $error_message = '';
 
 $g = new GoogleAuthenticator();
 
-// Traitement de l'activation/désactivation de la 2FA
 if (isset($_POST['confirm_2fa'])) {
     $entered_code = $_POST['2fa_code'];
     $secret = $_SESSION['temp_2fa_secret'];
@@ -45,7 +43,6 @@ if (isset($_POST['disable_2fa'])) {
     $success_message = "2FA désactivée avec succès.";
 }
 
-// Traitement du formulaire de changement d'email
 if (isset($_POST['change_email'])) {
     $new_email = filter_input(INPUT_POST, 'new_email', FILTER_VALIDATE_EMAIL);
     if ($new_email) {
@@ -59,7 +56,6 @@ if (isset($_POST['change_email'])) {
     }
 }
 
-// Traitement du formulaire de changement de mot de passe
 if (isset($_POST['change_password'])) {
     $current_password = $_POST['current_password'];
     $new_password = $_POST['new_password'];

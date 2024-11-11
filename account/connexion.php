@@ -72,11 +72,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                         $errors[] = "Adresse email ou mot de passe incorrect.";
                     } else {
                         if ($user['two_factor_secret']) {
-                            // 2FA est activée, afficher le formulaire 2FA
                             $_SESSION['temp_user_id'] = $user['id'];
                             $show_2fa_form = true;
                         } else {
-                            // 2FA n'est pas activée, connexion directe
                             $token = generateToken();
                             $_SESSION['user_email'] = $email;
                             $_SESSION['user_token'] = $token;
@@ -99,7 +97,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             }
         }
     } elseif (isset($_POST['2fa_code'])) {
-        // Vérification du code 2FA
         $code = $_POST['2fa_code'];
         
         $stmt = $pdo->prepare("SELECT * FROM users WHERE id = :id");
@@ -108,7 +105,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
         $g = new GoogleAuthenticator();
         if ($g->checkCode($user['two_factor_secret'], $code)) {
-            // Code correct, connecter l'utilisateur
             $token = generateToken();
             $_SESSION['user_email'] = $user['email'];
             $_SESSION['user_token'] = $token;

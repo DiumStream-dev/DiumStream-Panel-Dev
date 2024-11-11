@@ -82,7 +82,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                 $action = "Modification du rôle $roleName avec l'image de fond $backgroundUrl";
                 ajouter_log($_SESSION['user_email'], $action);
             }
-        }    
+        }
     }elseif (isset($_POST["submit_maintenance"])) {
         $maintenance = isset($_POST["maintenance"]) ? 1 : 0;
         $sql = "UPDATE options SET maintenance = ?";
@@ -249,7 +249,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             $mods = isset($_POST["mods_enabled"]) ? 1 : 0;
             $sql = "UPDATE options SET mods_enabled = ?";
             $stmt = $pdo->prepare($sql);
-            $stmt->execute([$mods]);    
+            $stmt->execute([$mods]);
           
             $file_verification = isset($_POST["file_verification"]) ? 1 : 0;
             $sql = "UPDATE options SET file_verification = ?";
@@ -563,10 +563,10 @@ document.addEventListener('DOMContentLoaded', function() {
 <?php require_once './function/main.php';?>
 <?php require_once './function/serveur.php';?>
 <?php require_once './function/splash.php';?>
-<?php require_once './function/loader.php';?>           
-<?php require_once './function/rpc.php';?>           
+<?php require_once './function/loader.php';?>
+<?php require_once './function/rpc.php';?>
 <?php require_once './function/maintenance.php';?>
-<?php require_once './function/whitelist.php';?>  
+<?php require_once './function/whitelist.php';?>
 <?php require_once './function/roles.php';?>
 <?php require_once './function/ignore.php';?>
 <?php require_once './function/mods.php';?>
