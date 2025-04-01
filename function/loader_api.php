@@ -3,7 +3,6 @@ function getForgeBuilds($mcVersion) {
     $url = "https://files.minecraftforge.net/net/minecraftforge/forge/index_$mcVersion.html";
     $builds = [];
 
-    // Récupérer le contenu HTML de la page
     $html = @file_get_contents($url);
 
     if ($html !== false) {

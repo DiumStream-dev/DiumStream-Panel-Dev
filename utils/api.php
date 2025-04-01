@@ -8,6 +8,7 @@ if (!file_exists($configFilePath)) {
 }
 
 require_once '../connexion_bdd.php';
+$pdo->exec("SET NAMES 'utf8mb4' COLLATE 'utf8mb4_general_ci'");
 
 $domain = $_SERVER['HTTP_HOST'];
 $baseURL = 'https://' . $domain;
@@ -50,7 +51,9 @@ $data = [
     "rpc_id" => $options["rpc_id"],
     "rpc_details" => $options["rpc_details"],
     "rpc_state" => $options["rpc_state"],
+    "rpc_large_image" => $options["rpc_large_image"],
     "rpc_large_text" => $options["rpc_large_text"],
+    "rpc_small_image" => $options["rpc_small_image"],
     "rpc_small_text" => $options["rpc_small_text"],
     "rpc_button1" => $options["rpc_button1"],
     "rpc_button1_url" => $options["rpc_button1_url"],
@@ -62,13 +65,16 @@ $data = [
     "alert_msg" => $options["alert_msg"],
     "video_activate" => (bool) $options["video_activation"],
     "video_url" => extractYouTubeVideoId($options["video_url"]),
+    "video_type" => $options["video_type"],
     "email_verified" => (bool) $options["email_verified"],
+    "ram_min" => (int) $options["ram_min"] / 1024,
+    "ram_max" => (int) $options["ram_max"] / 1024,
 ];
 
 if (!empty($options["server_img"])) {
-    $data["server_img"] = cleanImageUrl($options["server_img"], $baseURL);
+    $data["server_icon"] = cleanImageUrl($options["server_img"], $baseURL);
 } else {
-    $data["server_img"] = "";
+    $data["server_icon"] = "";
 }
 
 $sqlRoles = "SELECT * FROM roles";
@@ -122,17 +128,21 @@ while ($rowWhitelist_role = $stmtWhitelist_role->fetch(PDO::FETCH_ASSOC)) {
 $data["whitelist_roles"] = $whitelist_role;
 
 header('Content-Type: application/json');
-echo json_encode($data, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES);
+echo json_encode($data, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE);
 ?>
 
 <?php
 function cleanImageUrl($imagePath, $baseURL) {
     $cleanPath = ltrim($imagePath, './');
-    return $baseURL . '/' . $cleanPath;
+    return $baseURL . '/' . str_replace('%2F', '/', rawurlencode($cleanPath));
 }
 
 function extractYouTubeVideoId($url) {
-    $pattern = '/(?:https?:\/\/)?(?:www\.)?youtube\.com\/(?:embed\/|v\/|watch\?v=|watch\?.*v=|v=)?([a-zA-Z0-9_-]{11})/';
+    if (strpos($url, 'youtube.com/shorts/') !== false) {
+        $pattern = '/youtube\.com\/shorts\/([a-zA-Z0-9_-]{11})/';
+    } else {
+        $pattern = '/(?:https?:\/\/)?(?:www\.)?youtube\.com\/(?:embed\/|v\/|watch\?v=|watch\?.*v=|v=)?([a-zA-Z0-9_-]{11})/';
+    }
     preg_match($pattern, $url, $matches);
     return $matches[1] ?? "";
 }
