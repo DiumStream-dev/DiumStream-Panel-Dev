@@ -167,7 +167,8 @@ try {
                 ajouter_log($_SESSION['user_email'], "Mise à jour réussie vers la version $latestVersion");
                 echo json_encode([
                     'success' => true,
-                    'message' => 'Mise à jour terminée avec succès.'
+                    'message' => 'Mise à jour terminée avec succès.',
+                    'new_version' => $latestVersion
                 ]);
             } else {
                 throw new Exception('La mise à jour semble avoir échoué. La version actuelle n\'a pas été mise à jour.');
