@@ -1,0 +1,56 @@
+name: Release
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  create-release:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+
+      - name: Get version from update/json/version.json
+        id: get_version
+        run: |
+          VERSION=$(jq -r '.version' < update/json/version.json)
+          if [[ -z "$VERSION" || "$VERSION" == "null" ]]; then
+            echo "Erreur : La version est vide ou invalide."
+            exit 1
+          fi
+          echo "VERSION=$VERSION"
+          echo "::set-output name=version::$VERSION"
+          echo "version=$VERSION" >> $GITHUB_ENV
+
+      - name: Configure Git
+        run: |
+          git config --global user.name "DiumStream-tech"
+          git config --global user.email "actions@github.com"
+
+      - name: Check if tag exists
+        run: |
+          if git rev-parse "v${{ steps.get_version.outputs.version }}" >/dev/null 2>&1; then
+            echo "Le tag v${{ steps.get_version.outputs.version }} existe déjà."
+            exit 0
+          fi
+
+      - name: Create Git Tag
+        run: |
+          git tag -a "v${{ steps.get_version.outputs.version }}" -m "Release v${{ steps.get_version.outputs.version }}"
+          git push origin "v${{ steps.get_version.outputs.version }}"
+
+      - name: Create GitHub Release
+        uses: actions/create-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tag_name: v${{ steps.get_version.outputs.version }}
+          release_name: "Release v${{ steps.get_version.outputs.version }}"
+          body: "Update v${{ steps.get_version.outputs.version }}"
+          draft: false
+          prerelease: false

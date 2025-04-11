@@ -22,19 +22,36 @@ function ajouter_log($user, $action) {
 }
 
 function getCurrentVersion() {
-    return trim(file_get_contents('version.txt'));
+    $versionFile = __DIR__ . '/../update/json/version.json';
+    if (!file_exists($versionFile)) {
+        throw new Exception('Fichier version.json introuvable.');
+    }
+    $fileContent = file_get_contents($versionFile);
+    $jsonData = json_decode($fileContent, true);
+    if (json_last_error() !== JSON_ERROR_NONE || !isset($jsonData['version'])) {
+        throw new Exception('Erreur lors de la lecture ou du décodage du fichier version.json.');
+    }
+    return trim($jsonData['version']);
 }
 
 function getUpdateInfo() {
-    $updateJsonPath = 'update.json';
+    $updateJsonPath = __DIR__ . '/../update/json/update.json';
     if (!file_exists($updateJsonPath)) {
         throw new Exception('Fichier update.json introuvable.');
     }
-    return json_decode(file_get_contents($updateJsonPath), true);
+    $fileContent = file_get_contents($updateJsonPath);
+    $jsonData = json_decode($fileContent, true);
+    if (json_last_error() !== JSON_ERROR_NONE) {
+        throw new Exception('Erreur lors de la lecture ou du décodage du fichier update.json.');
+    }
+    return $jsonData;
 }
 
 function getLatestVersion() {
     $updateInfo = getUpdateInfo();
+    if (!isset($updateInfo['version_url'])) {
+        throw new Exception('Clé "version_url" manquante dans update.json.');
+    }
     $url = $updateInfo['version_url'];
     $opts = [
         "http" => [
@@ -43,15 +60,38 @@ function getLatestVersion() {
         ]
     ];
     $context = stream_context_create($opts);
-    return trim(file_get_contents($url, false, $context));
+    $latestVersionContent = file_get_contents($url, false, $context);
+    if ($latestVersionContent === false) {
+        throw new Exception("Impossible de récupérer la dernière version depuis l'URL.");
+    }
+    $jsonData = json_decode($latestVersionContent, true);
+    if (json_last_error() !== JSON_ERROR_NONE || !isset($jsonData['version'])) {
+        throw new Exception('Erreur lors de la lecture ou du décodage de la version distante.');
+    }
+    return trim($jsonData['version']);
 }
 
 function isNewVersionAvailable($currentVersion, $latestVersion) {
     return version_compare($currentVersion, $latestVersion, '<');
 }
 
+function deleteFolderRecursive($folderPath) {
+    foreach (glob("$folderPath/*") as $item) {
+        if (is_dir($item)) {
+            deleteFolderRecursive($item);
+            rmdir($item);
+        } else {
+            unlink($item);
+        }
+    }
+}
+
 function updateFiles() {
     $updateInfo = getUpdateInfo();
+    if (!isset($updateInfo['zip_url'])) {
+        throw new Exception('Clé "zip_url" manquante dans update.json.');
+    }
+
     $zipFile = 'update.zip';
     $url = $updateInfo['zip_url'];
 
@@ -66,119 +106,76 @@ function updateFiles() {
         $zip->close();
         unlink($zipFile);
 
-        $innerFolder = $extractPath . '/DiumStream-Panel-Dev-main';
+        $innerFolder = glob("$extractPath/*")[0];
         if (is_dir($innerFolder)) {
-            $files = new RecursiveIteratorIterator(
-                new RecursiveDirectoryIterator($innerFolder, RecursiveDirectoryIterator::SKIP_DOTS),
-                RecursiveIteratorIterator::SELF_FIRST
-            );
-
-            foreach ($files as $file) {
-                $destination = str_replace($innerFolder, '..', $file);
-
+            foreach (new RecursiveIteratorIterator(new RecursiveDirectoryIterator($innerFolder, RecursiveDirectoryIterator::SKIP_DOTS)) as $file) {
+                $destination = str_replace("$innerFolder/", '../', $file->getPathname());
                 if ($file->isDir()) {
                     mkdir($destination);
                 } else {
-                    rename($file, $destination);
+                    rename($file->getPathname(), $destination);
                 }
             }
-            $files = new RecursiveIteratorIterator(
-                new RecursiveDirectoryIterator($innerFolder, RecursiveDirectoryIterator::SKIP_DOTS),
-                RecursiveIteratorIterator::CHILD_FIRST
-            );
-
-            foreach ($files as $file) {
-                if ($file->isDir()) {
-                    rmdir($file->getRealPath());
-                } else {
-                    unlink($file->getRealPath());
-                }
-            }
-
-            rmdir($innerFolder);
+            deleteFolderRecursive($innerFolder);
         }
-        rmdir($extractPath);
+        deleteFolderRecursive($extractPath);
 
         return true;
     } else {
-        return false;
+        throw new Exception('Échec de l\'ouverture du fichier ZIP.');
     }
 }
 
-function updateDatabase($pdo) {
-    $sqlFilePath = '../utils/panel.sql';
+function updateDatabase() {
+    global $pdo;
+
+    $sqlFilePath = __DIR__ . '/../utils/panel.sql';
+
     if (!file_exists($sqlFilePath)) {
-        return ['success' => false, 'message' => "Fichier panel.sql introuvable."];
+        throw new Exception("Fichier panel.sql introuvable.");
     }
 
-    $sqlContent = file_get_contents($sqlFilePath);
-    $tableSegments = explode('CREATE TABLE', $sqlContent);
-    array_shift($tableSegments);
-    $newTables = [];
-
-    $existingTables = $pdo->query("SHOW TABLES")->fetchAll(PDO::FETCH_COLUMN);
-    
-    foreach ($tableSegments as $segment) {
-        $segment = 'CREATE TABLE ' . $segment;
-        preg_match('/`(\w+)`/', $segment, $tableMatch);
-        if (isset($tableMatch[1])) {
-            $tableName = $tableMatch[1];
-            $newTables[] = $tableName;
-            if (!in_array($tableName, $existingTables)) {
-                if ($pdo->exec($segment) === false) {
-                    throw new Exception("Erreur lors de la création de la table '$tableName'.");
-                }
+    try {
+        foreach (explode(';', file_get_contents($sqlFilePath)) as $query) {
+            if (trim($query)) {
+                $pdo->exec(trim($query));
             }
-        } else {
-            throw new Exception("Impossible d'extraire le nom de la table pour le segment suivant : \n$segment\n");
         }
+
+        return ['success' => true, 'message' => 'Base de données mise à jour avec succès.'];
+
+    } catch (Exception $e) {
+        return ['success' => false, 'message' => "Erreur lors de la mise à jour de la base de données : {$e->getMessage()}"];
     }
-
-    foreach ($tableSegments as $segment) {
-        preg_match('/`(\w+)`/', $segment, $tableMatch);
-        $tableName = $tableMatch[1];
-
-        $result = $pdo->query("SHOW COLUMNS FROM `$tableName`");
-        $existingColumns = [];
-        while ($row = $result->fetch(PDO::FETCH_ASSOC)) {
-            $existingColumns[$row['Field']] = $row['Type'];
-        }
-
-        preg_match_all('/`(\w+)` (\w+\([\d,]+\)|\w+(\(\d+\))?)/', $segment, $matches);
-        $newColumns = array_combine($matches[1], $matches[2]);
-
-        foreach ($newColumns as $column => $type) {
-            if (!array_key_exists($column, $existingColumns)) {
-                $alterQuery = "ALTER TABLE `$tableName` ADD COLUMN `$column` $type";
-                if ($pdo->exec($alterQuery) === false) {
-                    return ['success' => false, 'message' => "Erreur lors de l'ajout de la colonne '$column' à la table '$tableName'."];
-                }
-            }
-        }
-    }    
-
-    return ['success' => true, 'message' => "Base de données mise à jour avec succès."];
 }
 
-if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['update_button'])) {
-    $currentVersion = getCurrentVersion();
-    $latestVersion = getLatestVersion();
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    try {
+        if (isset($_POST['check_update'])) {
+            $currentVersion = getCurrentVersion();
+            $latestVersion = getLatestVersion();
 
-    if (isNewVersionAvailable($currentVersion, $latestVersion)) {
-        if (updateFiles()) {
-            $dbUpdateResult = updateDatabase($pdo);
-            if ($dbUpdateResult['success']) {
-                file_put_contents('version.txt', $latestVersion);
-                ajouter_log($_SESSION['user_email'], "Mise à jour effectuée de la version $currentVersion à $latestVersion");
-                echo json_encode(['success' => true, 'message' => "Mise à jour terminée avec succès à la version $latestVersion."]);
+            if (isNewVersionAvailable($currentVersion, $latestVersion)) {
+                echo json_encode(['success' => true, 'new_version_available' => true, 'current_version' => $currentVersion, 'latest_version' => $latestVersion]);
             } else {
-                echo json_encode($dbUpdateResult);
+                echo json_encode(['success' => true, 'new_version_available' => false, 'current_version' => $currentVersion]);
             }
+        } elseif (isset($_POST['update_button'])) {
+            updateFiles();
+            updateDatabase();
+
+            file_put_contents(__DIR__ . '/../update/version.json', json_encode(['version' => getLatestVersion()], JSON_PRETTY_PRINT));
+
+            ajouter_log($_SESSION['user_email'], "Mise à jour effectuée.");
+
+            echo json_encode(['success' => true, 'message' => "Mise à jour effectuée avec succès."]);
         } else {
-            echo json_encode(['success' => false, 'message' => 'Échec de la mise à jour des fichiers.']);
+            echo json_encode(['success' => false, 'message' => 'Requête non valide.']);
         }
-    } else {
-        echo json_encode(['success' => true, 'message' => 'Aucune mise à jour disponible.']);
+
+    } catch (Exception $e) {
+        echo json_encode(['success' => false, 'message' => "Erreur : {$e->getMessage()}"]);
+
     }
 } else {
     echo json_encode(['success' => false, 'message' => 'Requête non valide.']);

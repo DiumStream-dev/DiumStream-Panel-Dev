@@ -122,8 +122,7 @@
                     <div class="mb-6">
                         <label for="ram_max" class="block text-sm font-medium text-gray-400 mb-2">RAM Maximum par défaut (MB) :</label>
                         <input type="number" class="form-input mt-1 block w-full rounded-lg border-gray-600 bg-gray-700 text-gray-200 p-2 focus:ring-indigo-500 focus:border-indigo-500" id="ram_max" name="ram_max" value="<?php echo $row['ram_max']; ?>">
-                    </div>
-
+                </div>
 
                 <button type="submit" name="submit_general_settings"
                     class="mt-6 px-4 py-2 bg-indigo-600 text-white font-semibold rounded-lg shadow-md hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-opacity-75">
