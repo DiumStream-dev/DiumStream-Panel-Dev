@@ -102,6 +102,12 @@ try {
             </h1>
             
             <div class="flex space-x-4">
+                <?php if ($latestVersion && version_compare($currentVersion, $latestVersion, '<')): ?>
+                <button onclick="performUpdate()" class="bg-blue-600 hover:bg-blue-700 px-4 py-2 rounded-lg flex items-center">
+                    <i class="bi bi-cloud-arrow-down mr-2"></i>
+                    Mettre à jour
+                </button>
+                <?php endif; ?>
                 <a href="javascript:history.back()" class="bg-gray-700 hover:bg-gray-600 px-4 py-2 rounded-lg flex items-center">
                     <i class="bi bi-arrow-left mr-2"></i>
                     Retour
@@ -186,6 +192,31 @@ try {
         </div>
     </div>
 </div>
+
+<script>
+function performUpdate() {
+    fetch('/update/update.php', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/x-www-form-urlencoded',
+        },
+        body: 'update_button=1'
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            alert('Mise à jour réussie !');
+            window.location.reload();
+        } else {
+            alert('Erreur lors de la mise à jour: ' + data.message);
+        }
+    })
+    .catch(error => {
+        console.error('Erreur:', error);
+        alert('Une erreur est survenue lors de la mise à jour');
+    });
+}
+</script>
 
 <?php include __DIR__.'/../../ui/footer.php'; ?>
 
